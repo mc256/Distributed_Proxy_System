@@ -13,7 +13,7 @@ void Client_B::generate_fake_request() {
     //string key = "Hello world" + to_string(current_time) + password;
     string key = Encryption::sha_hash(this->peer->password);
     string request = http_request + cookie + key;
-    DEBUG(cout << "fake http request:" << endl << request << endl;)
+    //DEBUG(cout << "fake http request:" << endl << request << endl;)
 
     //Prepare package
     struct Data_Package *data = new struct Data_Package;
