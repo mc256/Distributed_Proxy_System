@@ -55,8 +55,6 @@ Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     Client_B::hook_core_recv = [this](Client_B *b, struct Data_Package * d) {
         // copy to write queue on A
 
-
-
     };
     for_each(pp_list.begin(), pp_list.end(), [this](struct Proxy_Peer *p) {
         (new Server_Connect<Client_B>(this->loop, p));

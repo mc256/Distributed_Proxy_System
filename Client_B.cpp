@@ -81,11 +81,11 @@ void Client_B::verify_peer(R_Filter *rf) {
         this->read_buffer.pop_front();
         delete data;
     }else{
-        int start = this->read_buffer.front()->size - first_packet_size;
+        int start = data->size - first_packet_size;
         for (int i = 0; i < first_packet_size; i++){
-            this->read_buffer.front()->buffer[i] = this->read_buffer.front()->buffer[start + i];
+            data->buffer[i] = data->buffer[start + i];
         }
-        this->read_buffer.front()->size = first_packet_size;
+        data->size = first_packet_size;
     }
 
     // mark as available

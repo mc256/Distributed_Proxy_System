@@ -13,13 +13,13 @@ private:
     int socket_id;
     int dispatcher_id;
     static int unique_id;
-
-    void flush_buffer();
+    string password;
 
 public:
     static map<int, Peer_A *> interface_list;
 
-    stringstream read_ss;
+    bool fake_header_respond;
+    stringstream handshake_str;
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
     R_Filter * rf;
