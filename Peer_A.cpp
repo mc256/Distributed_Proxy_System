@@ -30,7 +30,7 @@ void Peer_A::verify_client() {
     //DEBUG(cout << string((char *) data->buffer) << endl;)
 
     handshake_str << string((char *) data->buffer);
-    size_t found = handshake_str.str().find("\n");
+    size_t found = handshake_str.str().find('\n');
     if (found == string::npos){
         return;
     }

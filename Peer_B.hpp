@@ -15,7 +15,7 @@ private:
     static int unique_id;
 
 public:
-    static map<int, Peer_B *> list;
+    static map<int, Peer_B *> interface_list;
 
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
@@ -23,6 +23,8 @@ public:
     W_Filter * wf;
 
     bool active;
+
+    void start();
 
     /////////////////////////////////////
     Peer_B(ev::default_loop * loop, int socket_id);
