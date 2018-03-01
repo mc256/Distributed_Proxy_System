@@ -16,6 +16,9 @@ private:
 
 public:
     static map<int, Peer_B *> interface_list;
+    static vector<Peer_B *> available_list;
+
+    struct Proxy_Peer * peer;
 
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
@@ -23,6 +26,8 @@ public:
     W_Filter * wf;
 
     bool active;
+
+    static function<void (Peer_B *, struct Data_Package *)> hook_core_recv;
 
     void start();
 

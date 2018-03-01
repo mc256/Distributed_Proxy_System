@@ -21,9 +21,7 @@ private:
     int port;
 
     // Configure
-    int user_id = 678;
-
-    Client_Core * instance;
+    int instance_id = 678;
 
 public:
     /////////////////////////////////////

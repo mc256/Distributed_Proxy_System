@@ -74,6 +74,11 @@ void Peer_A::verify_client() {
     r_data->sent = 0;
     this->write_buffer.push_back(r_data);
     this->wf->start();
+
+    this->rf->hook_recv = [this](R_Filter * rf){
+        // split the package
+
+    };
 }
 
 /////////////////////////////////////

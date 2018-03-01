@@ -16,7 +16,6 @@ Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     pp->port = 9101;
     pp->password = "password";
     pp_list.push_back(pp);
-    /*
     pp = new struct Proxy_Peer;
     pp->address = "127.0.0.1";
     pp->port = 9102;
@@ -32,7 +31,7 @@ Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     pp->port = 9104;
     pp->password = "password";
     pp_list.push_back(pp);
-    */
+
 
     // A face ------------------------------------------------------------
     Client_A::hook_core_recv = [this](Client_A * a){

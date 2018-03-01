@@ -30,6 +30,7 @@ Peer_B::Peer_B(ev::default_loop *loop, int socket_id) {
 
     this->dispatcher_id = ++unique_id;
     Peer_B::interface_list[this->dispatcher_id] = this;
+    Peer_B::available_list.push_back(this);
 }
 
 
@@ -48,3 +49,4 @@ string Peer_B::info() {
 
 int Peer_B::unique_id = 0;
 map<int, Peer_B *> Peer_B::interface_list = map<int, Peer_B *>();
+vector<Peer_B *> Peer_B::available_list = vector<Peer_B *>();
