@@ -35,6 +35,7 @@ void Peer_A::verify_client() {
         return;
     }
 
+    // Fake response;
     stringstream response;
     if (!fake_header_respond){
         string method, uri, protocol;
@@ -48,6 +49,7 @@ void Peer_A::verify_client() {
         fake_header_respond = true;
     }
 
+    // Check if key exists
     string key = Encryption::sha_hash(password);
     found = handshake_str.str().find(key);
     if (found != string::npos){
@@ -66,19 +68,16 @@ void Peer_A::verify_client() {
 
         this->rf->hook_recv = nullptr;
         this->active = true;
+        Peer_A::available_list.push_back(this);
     }
 
+    // Send back response
     struct Data_Package *r_data = new struct Data_Package;
     memcpy(r_data->buffer,response.str().c_str(),response.str().size());
     r_data->size = response.str().size();
     r_data->sent = 0;
     this->write_buffer.push_back(r_data);
     this->wf->start();
-
-    this->rf->hook_recv = [this](R_Filter * rf){
-        // split the package
-
-    };
 }
 
 /////////////////////////////////////
@@ -108,4 +107,5 @@ string Peer_A::info() {
 
 int Peer_A::unique_id = 0;
 map<int, Peer_A *> Peer_A::interface_list = map<int, Peer_A *>();
+vector<Peer_A *> Peer_A::available_list = vector<Peer_A *>();
 function<void (Peer_A *, struct Data_Package *)> Peer_A::hook_core_recv = nullptr;

@@ -11,17 +11,17 @@
 template <class T> class Server_Connect{
 private:
     ev::io watcher;
-    ev::default_loop * loop;
 
     struct sockaddr_in connect_address;
     socklen_t connect_address_length;
 
+    T * object;
 public:
     struct Proxy_Peer * peer;
 
     void start();
 
-    Server_Connect(ev::default_loop * loop, struct Proxy_Peer * peer);
+    Server_Connect(T * object);
 };
 
 
@@ -32,17 +32,16 @@ void Server_Connect<T>::start() {
                      return);
     DEBUG(cout << peer->address << ":" << peer->port << " connected" << endl;)
     peer->connected = true;
-    T *t = new T(this->loop, peer);
-    t->start();
+    this->object->start();
     delete this;
 }
 
 template<class T>
-Server_Connect<T>::Server_Connect(ev::default_loop *loop, struct Proxy_Peer *peer) {
-    this->loop = loop;
-    this->peer = peer;
+Server_Connect<T>::Server_Connect(T * object) {
+    this->peer = object->peer;
     this->peer->available = false;
     this->peer->connected = false;
+    this->object = object;
 
     //IP address
     struct in_addr ipv4;

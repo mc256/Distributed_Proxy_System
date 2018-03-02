@@ -32,7 +32,7 @@ public:
     void start();
 
     /////////////////////////////////////
-    Peer_B(ev::default_loop * loop, int socket_id);
+    Peer_B(ev::default_loop * loop, struct Proxy_Peer * peer, int dispatcher_id);
 
     ~Peer_B();
 

@@ -23,9 +23,10 @@ void Peer_B::start(){
 
 
 /////////////////////////////////////
-Peer_B::Peer_B(ev::default_loop *loop, int socket_id) {
+Peer_B::Peer_B(ev::default_loop *loop, struct Proxy_Peer * peer, int dispatcher_id) {
     this->loop = loop;
-    this->socket_id = socket_id;
+    this->socket_id = peer->descriptor;
+    this->dispatcher_id = dispatcher_id;
     this->active = false;
 
     this->dispatcher_id = ++unique_id;

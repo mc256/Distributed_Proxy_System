@@ -17,6 +17,7 @@ private:
 
 public:
     static map<int, Peer_A *> interface_list;
+    static vector<Peer_A *> available_list;
 
     bool fake_header_respond;
     stringstream handshake_str;
