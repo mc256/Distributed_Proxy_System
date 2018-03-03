@@ -23,6 +23,8 @@ private:
     // Configure
     int instance_id = 678;
 
+    void up_link_transport(Client_A * a);
+
 public:
     /////////////////////////////////////
     Client_Core(ev::default_loop * loop, string address, int port);

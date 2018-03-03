@@ -56,7 +56,7 @@ Peer_Core::Peer_Core(ev::default_loop *loop) {
         Peer_A * a = Peer_A::available_list[rand() % Peer_A::available_list.size()];
         for_each(b->read_buffer.begin(), b->read_buffer.end(), [this, b](struct Data_Package * d){
             if (d->timestamp < time(NULL) - RESEND_PERIOD) {
-                // TODO:
+
             }
         });
     };

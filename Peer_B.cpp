@@ -15,6 +15,9 @@ void Peer_B::start(){
 
     //Read
     this->rf = new R_Filter(loop, &this->read_buffer, this->socket_id, &this->rf, this->dispatcher_id);
+    this->rf->hook_recv = [this](R_Filter * rf){
+        // TODO: Append meta information to package
+    };
 
     // start everything
     this->rf->start();
@@ -51,3 +54,4 @@ string Peer_B::info() {
 int Peer_B::unique_id = 0;
 map<int, Peer_B *> Peer_B::interface_list = map<int, Peer_B *>();
 vector<Peer_B *> Peer_B::available_list = vector<Peer_B *>();
+function<void (Peer_B *, struct Data_Package *)> Peer_B::hook_core_recv = nullptr;

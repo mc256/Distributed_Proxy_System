@@ -14,7 +14,9 @@ private:
     static int unique_id;
     int sequence_id;
     struct Data_Meta meta;
-    bool actived;
+    bool active;
+
+    void attach_meta();
 public:
     int dispatcher_id;
 
