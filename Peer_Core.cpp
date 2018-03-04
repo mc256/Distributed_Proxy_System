@@ -42,6 +42,7 @@ void Peer_Core::load_config(){
 }
 
 Peer_Core::Peer_Core(ev::default_loop *loop, string address, int port_begin, int port_end) {
+    this->loop = loop;
 
     load_config();
 

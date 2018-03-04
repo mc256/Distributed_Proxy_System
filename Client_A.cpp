@@ -10,6 +10,8 @@ void Client_A::attach_meta(){
     memcpy(this->meta.sequence_id, (char *) &this->sequence_id, sizeof(this->meta.sequence_id));
     memcpy(this->meta.size, (char *) &rf->buffer->back()->size, sizeof(this->meta.size));
     memcpy(this->read_buffer.back()->buffer, &this->meta, sizeof(this->meta));
+    this->read_buffer.back()->size += sizeof(this->meta);
+
     //Send notification to client core
     if (Client_A::hook_core_recv != nullptr) {
         Client_A::hook_core_recv(this);

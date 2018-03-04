@@ -61,6 +61,9 @@ void Peer_A::verify_client() {
         this->rf->hook_recv = [this](R_Filter *rf) {
             this->split_package();
         };
+        this->rf->hook_closed = [this](R_Filter * rf){
+            this->shutdown();
+        };
 
         // Cut useless package
         int first_packet_size = read_stream.str().length() - found - key.size();
@@ -125,7 +128,7 @@ void Peer_A::split_package() {
         if (size == sizeof(struct Data_Meta)) {
             this->package_holder = new struct Data_Package;
             this->meta_holder = new struct Data_Meta;
-            memcpy(this->meta_holder, this->read_stream.rdbuf(), sizeof(struct Data_Meta));
+            memcpy(this->meta_holder, this->read_stream.str().c_str(), sizeof(struct Data_Meta));
             memcpy(&this->read_size, &this->meta_holder->size, sizeof(int));
             this->package_holder->sent = 0;
         }
@@ -168,6 +171,11 @@ void Peer_A::split_package() {
     }
 }
 
+void Peer_A::shutdown() {
+    this->active = false;
+    delete this;
+}
+
 /////////////////////////////////////
 Peer_A::Peer_A(ev::default_loop *loop, int socket_id) {
     this->loop = loop;
@@ -182,6 +190,12 @@ Peer_A::Peer_A(ev::default_loop *loop, int socket_id) {
 
 Peer_A::~Peer_A() {
     Peer_A::interface_list.erase(this->dispatcher_id);
+    for (int i = 0; i < Peer_A::available_list.size(); ++i) {
+        if (Peer_A::available_list[i] == this){
+            Peer_A::available_list.erase(Peer_A::available_list.begin() + i);
+            break;
+        }
+    }
 }
 
 string Peer_A::info() {

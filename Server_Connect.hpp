@@ -31,7 +31,6 @@ void Server_Connect<T>::start() {
              "Fail to connect.", delete this;
                      return);
     DEBUG(cout << peer->address << ":" << peer->port << " connected" << endl;)
-    peer->connected = true;
     this->object->start();
     delete this;
 }
@@ -39,8 +38,6 @@ void Server_Connect<T>::start() {
 template<class T>
 Server_Connect<T>::Server_Connect(T * object) {
     this->peer = object->peer;
-    this->peer->available = false;
-    this->peer->connected = false;
     this->object = object;
 
     //IP address

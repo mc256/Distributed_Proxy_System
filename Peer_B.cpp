@@ -45,6 +45,9 @@ Peer_B::Peer_B(ev::default_loop *loop, struct Proxy_Peer * peer, int dispatcher_
     this->loop = loop;
     this->socket_id = peer->descriptor;
     this->dispatcher_id = dispatcher_id;
+    this->active = false;
+
+    this->peer = peer;
 
     Peer_B::interface_list[this->dispatcher_id] = this;
     this->sequence_id = 0;

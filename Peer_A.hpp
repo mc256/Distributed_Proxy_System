@@ -46,6 +46,9 @@ public:
     // STEP 3
     void split_package();
 
+    // STEP 4
+    void shutdown();
+
     /////////////////////////////////////
     Peer_A(ev::default_loop * loop, int socket_id);
 
