@@ -20,7 +20,13 @@ public:
     static vector<Peer_A *> available_list;
 
     bool fake_header_respond;
-    stringstream handshake_str;
+    stringstream read_stream;
+
+    int read_size;
+    int read_position;
+    int package_offset;
+    struct Data_Package * package_holder;
+
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
     R_Filter * rf;
@@ -38,7 +44,7 @@ public:
     void verify_client ();
 
     // STEP 3
-    void analyse_read_buffer();
+    void split_package();
 
     /////////////////////////////////////
     Peer_A(ev::default_loop * loop, int socket_id);
