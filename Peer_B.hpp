@@ -12,8 +12,10 @@ private:
     ev::default_loop * loop;
     int socket_id;
     int dispatcher_id;
-    int sequence_id;
+    int seq_up, seq_down;
+    struct Data_Meta meta;
 
+    void attach_meta();
 public:
     static map<int, Peer_B *> interface_list;
     static vector<Peer_B *> available_list;

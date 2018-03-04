@@ -21,6 +21,26 @@ void Peer_Core::up_link_transport(Peer_A * a, struct Data_Package * d, struct Da
     (*interface)->flush_sort_pool();
 }
 
+void Peer_Core::down_link_transport(Peer_B * b, struct Data_Package * d){
+    // copy to send queue on A
+    // randomly select one peer from available proxy peer list
+    Peer_A * a = Peer_A::available_list[rand() % Peer_A::available_list.size()];
+    for_each(b->read_buffer.begin(), b->read_buffer.end(), [this, a](struct Data_Package * d){
+        // If it has waited for too long, resend the package
+        if (d->timestamp < time(NULL) - RESEND_PERIOD) {
+            // Update Timestap
+            d->timestamp = time(NULL);
+
+            // Peer_B should hold the origin data package, therefore we need a copy
+            auto * nd = new struct Data_Package;
+            memcpy(nd, d, sizeof(struct Data_Package));
+
+            // Push to write send queue
+            a->write_buffer.push_back(nd);
+        }
+    });
+}
+
 void Peer_Core::load_config(){
     ifstream setting_file;
     setting_file.open("peer_settings.txt");
@@ -55,18 +75,9 @@ Peer_Core::Peer_Core(ev::default_loop *loop, string address, int port_begin, int
     }
 
 
-/*
     // B face ------------------------------------------------------------
     Peer_B::hook_core_recv = [this](Peer_B * b, struct Data_Package * d){
-        struct Data_Package * nd = new struct Data_Package;
-        memcpy(&nd, &d, sizeof(struct Data_Meta));
-        Peer_A * a = Peer_A::available_list[rand() % Peer_A::available_list.size()];
-        for_each(b->read_buffer.begin(), b->read_buffer.end(), [this, b](struct Data_Package * d){
-            if (d->timestamp < time(NULL) - RESEND_PERIOD) {
-
-            }
-        });
+        this->down_link_transport(b, d);
     };
-*/
 
 }

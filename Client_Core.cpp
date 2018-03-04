@@ -14,7 +14,7 @@ void Client_Core::up_link_transport(Client_A * a){
             // Update Timestamp
             d->timestamp = time(NULL);
 
-            // Client_B should hold the origin data package, therefore we need a copy
+            // Client_A should hold the origin data package, therefore we need a copy
             auto * nd = new struct Data_Package;
             memcpy(nd,d,sizeof(struct Data_Package));
 

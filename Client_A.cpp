@@ -36,7 +36,6 @@ void Client_A::start() {
 
     // Write
     this->wf = new W_Filter(this->loop, &this->write_buffer, this->socket_id, &this->wf);
-    this->wf->offset = sizeof(struct Data_Meta);
     this->wf->hook_closed = [this](W_Filter *wf) {
         active = false;
     };

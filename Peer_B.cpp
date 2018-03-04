@@ -4,6 +4,23 @@
 
 #include "Peer_B.hpp"
 
+
+void Peer_B::attach_meta(){
+    //Adding Package Information
+    memcpy(this->meta.sequence_id, (char *) &this->seq_down, sizeof(this->meta.sequence_id));
+    memcpy(this->meta.size, (char *) &rf->buffer->back()->size, sizeof(this->meta.size));
+
+    //Copy Meta information to Package
+    memcpy(this->read_buffer.back()->buffer, &this->meta, sizeof(this->meta));
+    this->read_buffer.back()->size += sizeof(this->meta);
+
+    //Send notification to client core
+    if (Peer_B::hook_core_recv != nullptr) {
+        Peer_B::hook_core_recv(this, this->read_buffer.back());
+    }
+    this->seq_down ++;
+}
+
 /////////////////////////////////////
 void Peer_B::start(){
 
@@ -15,8 +32,9 @@ void Peer_B::start(){
 
     //Read
     this->rf = new R_Filter(loop, &this->read_buffer, this->socket_id, &this->rf, this->dispatcher_id);
+    this->rf->offset = sizeof(struct Data_Meta);
     this->rf->hook_recv = [this](R_Filter * rf){
-        // TODO: Append meta information to package
+        this->attach_meta();
     };
 
     Peer_B::available_list.push_back(this);
@@ -29,13 +47,13 @@ void Peer_B::start(){
 
 void Peer_B::flush_sort_pool(){
     while (true){
-        auto * d = write_sort_pool[sequence_id];
+        auto * d = write_sort_pool[seq_up];
         if (d == nullptr){
             break;
         }
         write_buffer.push_back(d);
-        write_sort_pool.erase(sequence_id);
-        sequence_id ++;
+        write_sort_pool.erase(seq_up);
+        seq_up ++;
     }
     this->wf->start();
 }
@@ -50,7 +68,8 @@ Peer_B::Peer_B(ev::default_loop *loop, struct Proxy_Peer * peer, int dispatcher_
     this->peer = peer;
 
     Peer_B::interface_list[this->dispatcher_id] = this;
-    this->sequence_id = 0;
+    this->seq_up = 0;
+    this->seq_down = 0;
 }
 
 
