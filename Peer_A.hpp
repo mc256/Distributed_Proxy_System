@@ -23,9 +23,9 @@ public:
     stringstream read_stream;
 
     int read_size;
-    int read_position;
     int package_offset;
     struct Data_Package * package_holder;
+    struct Data_Meta * meta_holder;
 
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
@@ -34,7 +34,7 @@ public:
 
     bool active;
 
-    static function<void (Peer_A *, struct Data_Package *)> hook_core_recv;
+    static function<void (Peer_A *, struct Data_Package *, struct Data_Meta *)> hook_core_recv;
 
     /////////////////////////////////////
     // STEP 1

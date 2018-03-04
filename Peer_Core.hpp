@@ -10,7 +10,6 @@
 class Peer_Core {
 private:
     // Face A
-    Server_Accept<Peer_A> * sa_pa;
 
     // Face B
     vector<struct Proxy_Peer *> pp_list;
@@ -23,8 +22,11 @@ private:
     // Configure;
     int instance_id = 666;
 
+    void up_link_transport(Peer_A * a, struct Data_Package * d, struct Data_Meta * m);
+    void load_config();
+
 public:
-    Peer_Core(ev::default_loop *loop);
+    Peer_Core(ev::default_loop *loop, string address, int port_begin, int port_end);
 };
 
 

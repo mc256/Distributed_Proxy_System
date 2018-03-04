@@ -29,7 +29,7 @@ void Peer_A::verify_client() {
     struct Data_Package *data = this->read_buffer.front();
     //DEBUG(cout << string((char *) data->buffer) << endl;)
 
-    read_stream << string((char *) data->buffer);
+    read_stream.write((char *) data->buffer, data->size);
     size_t found = read_stream.str().find('\n');
     if (found == string::npos) {
         return;
@@ -57,13 +57,6 @@ void Peer_A::verify_client() {
     if (found != string::npos) {
         response << Encryption::sha_hash("TODO"); //TODO: the password
 
-        // Reset Read Stream
-        this->read_size = 0;
-        this->read_position = 0;
-        this->package_offset = 0;
-        this->read_stream.str("");
-        this->read_stream.clear();
-
         // Setup hook
         this->rf->hook_recv = [this](R_Filter *rf) {
             this->split_package();
@@ -71,6 +64,14 @@ void Peer_A::verify_client() {
 
         // Cut useless package
         int first_packet_size = read_stream.str().length() - found - key.size();
+        cout << read_stream.str() << endl;
+
+        // Reset Read Stream
+        this->read_size = 0;
+        this->package_offset = 0;
+        this->read_stream.str("");
+        this->read_stream.clear();
+
         if (first_packet_size == 0) {
             this->read_buffer.pop_front();
             delete data;
@@ -79,6 +80,7 @@ void Peer_A::verify_client() {
             data->size = first_packet_size;
             this->split_package();
         }
+
 
         // Mark available
         this->active = true;
@@ -122,15 +124,15 @@ void Peer_A::split_package() {
 
         if (size == sizeof(struct Data_Meta)) {
             this->package_holder = new struct Data_Package;
-            auto meta = (struct Data_Meta *) this->read_stream.rdbuf();
-            memcpy(&this->package_holder->size, &meta->size, sizeof(int));
-            // TODO: Copy other meta information in the package
+            this->meta_holder = new struct Data_Meta;
+            memcpy(this->meta_holder, this->read_stream.rdbuf(), sizeof(struct Data_Meta));
+            memcpy(&this->read_size, &this->meta_holder->size, sizeof(int));
             this->package_holder->sent = 0;
         }
 
         //this->package_holder->size + sizeof(struct Data_Meta) == size
         if (size >= sizeof(struct Data_Meta)) {
-            auto diff_1 = this->package_holder->size + sizeof(struct Data_Meta) - size;
+            auto diff_1 = this->read_size + sizeof(struct Data_Meta) - size;
             auto diff_2 = d->size - this->package_offset;
             if (diff_1 < diff_2){
                 //copy
@@ -157,10 +159,11 @@ void Peer_A::split_package() {
                 delete d;
                 continue;
             }
-        }
 
-        if (this->hook_core_recv != nullptr) {
-            this->hook_core_recv(this, this->package_holder);
+            memcpy(this->package_holder, this->read_stream.rdbuf() + sizeof(struct Data_Meta), this->read_size);
+            if (this->hook_core_recv != nullptr) {
+                this->hook_core_recv(this, this->package_holder, this->meta_holder);
+            }
         }
     }
 }
@@ -193,4 +196,4 @@ string Peer_A::info() {
 int Peer_A::unique_id = 0;
 map<int, Peer_A *> Peer_A::interface_list = map<int, Peer_A *>();
 vector<Peer_A *> Peer_A::available_list = vector<Peer_A *>();
-function<void(Peer_A *, struct Data_Package *)> Peer_A::hook_core_recv = nullptr;
+function<void(Peer_A *, struct Data_Package *, struct Data_Meta *)> Peer_A::hook_core_recv = nullptr;

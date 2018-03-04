@@ -4,51 +4,57 @@
 
 #include "Peer_Core.hpp"
 
+void Peer_Core::up_link_transport(Peer_A * a, struct Data_Package * d, struct Data_Meta * m){
 
-Peer_Core::Peer_Core(ev::default_loop *loop) {
+    // Retire package information
+    auto dispatcher_id = (int) *m->dispatcher_id;
+    auto sequence_id = (int) *m->sequence_id;
+    auto user_id = (int) *m->user_id;
 
-    // load peer settings
-    struct Proxy_Peer *pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9111;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9112;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9113;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9114;
-    pp->password = "password";
-    pp_list.push_back(pp);
+    // dispatch to specific Peer_B classes
+    auto * interface = &Peer_B::interface_list[dispatcher_id];
+    if (* interface == nullptr){
+        new Peer_B(this->loop, this->pp_list[rand()%this->pp_list.size()], dispatcher_id);
+        new Server_Connect<Peer_B>(* interface);
+    }
+    (*interface)->write_sort_pool[sequence_id] = d;
+    (*interface)->flush_sort_pool();
+}
 
+void Peer_Core::load_config(){
+    ifstream setting_file;
+    setting_file.open("peer_settings.txt");
+    if (setting_file.good()){
+        string addr;
+        int port;
+        string password;
+        while (setting_file >> addr >> port >> password){
+            struct Proxy_Peer *setting = new struct Proxy_Peer;
+            setting->address = addr;
+            setting->port = port;
+            setting->password = password;
+            pp_list.push_back(setting);
+        }
+    }else{
+        cout << "Cannot load settings" << endl;
+        exit(1);
+    }
+}
+
+Peer_Core::Peer_Core(ev::default_loop *loop, string address, int port_begin, int port_end) {
+
+    load_config();
 
     // A face ------------------------------------------------------------
-    Peer_A::hook_core_recv = [this](Peer_A * a, struct Data_Package * d){
-        // Retire package information
-        struct Data_Meta m;
-        memcpy(&m, d->buffer, sizeof(struct Data_Meta));
-        auto * dispatcher_id = (int *) m.dispatcher_id;
-        auto * sequence_id = (int *) m.sequence_id;
-
-        // dispatch to specific Peer_B classes
-        auto * interface = &Peer_B::interface_list[*dispatcher_id];
-        if (* interface == nullptr){
-            * interface = new Peer_B(this->loop, this->pp_list[rand()%this->pp_list.size()], *dispatcher_id);
-            new Server_Connect<Peer_B>(* interface);
-        }
-        (*interface)->write_buffer.push_back(d);
-        (*interface)->wf->start();
+    Peer_A::hook_core_recv = [this](Peer_A * a, struct Data_Package * d, struct Data_Meta * m){
+        this->up_link_transport(a, d, m);
     };
-    this->sa_pa = new Server_Accept<Peer_A>(loop, address, port);
+    for (int port = port_begin; port <= port_end; ++port) {
+        (new Server_Accept<Peer_A>(loop, "0.0.0.0", port));
+    }
 
+
+/*
     // B face ------------------------------------------------------------
     Peer_B::hook_core_recv = [this](Peer_B * b, struct Data_Package * d){
         struct Data_Package * nd = new struct Data_Package;
@@ -60,4 +66,6 @@ Peer_Core::Peer_Core(ev::default_loop *loop) {
             }
         });
     };
+*/
+
 }

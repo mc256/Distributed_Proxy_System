@@ -12,7 +12,7 @@ private:
     ev::default_loop * loop;
     int socket_id;
     int dispatcher_id;
-    static int unique_id;
+    int sequence_id;
 
 public:
     static map<int, Peer_B *> interface_list;
@@ -22,6 +22,8 @@ public:
 
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
+    map<int,struct Data_Package *> write_sort_pool;
+
     R_Filter * rf;
     W_Filter * wf;
 
@@ -30,6 +32,7 @@ public:
     static function<void (Peer_B *, struct Data_Package *)> hook_core_recv;
 
     void start();
+    void flush_sort_pool();
 
     /////////////////////////////////////
     Peer_B(ev::default_loop * loop, struct Proxy_Peer * peer, int dispatcher_id);

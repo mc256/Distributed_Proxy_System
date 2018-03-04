@@ -24,6 +24,7 @@ private:
     int instance_id = 678;
 
     void up_link_transport(Client_A * a);
+    void load_config();
 
 public:
     /////////////////////////////////////

@@ -19,22 +19,35 @@ void Peer_B::start(){
         // TODO: Append meta information to package
     };
 
+    Peer_B::available_list.push_back(this);
+    this->active = true;
+
     // start everything
     this->rf->start();
     this->wf->start();
 }
 
+void Peer_B::flush_sort_pool(){
+    while (true){
+        auto * d = write_sort_pool[sequence_id];
+        if (d == nullptr){
+            break;
+        }
+        write_buffer.push_back(d);
+        write_sort_pool.erase(sequence_id);
+        sequence_id ++;
+    }
+    this->wf->start();
+}
 
 /////////////////////////////////////
 Peer_B::Peer_B(ev::default_loop *loop, struct Proxy_Peer * peer, int dispatcher_id) {
     this->loop = loop;
     this->socket_id = peer->descriptor;
     this->dispatcher_id = dispatcher_id;
-    this->active = false;
 
-    this->dispatcher_id = ++unique_id;
     Peer_B::interface_list[this->dispatcher_id] = this;
-    Peer_B::available_list.push_back(this);
+    this->sequence_id = 0;
 }
 
 
@@ -50,8 +63,6 @@ string Peer_B::info() {
     return ss.str();
 }
 
-
-int Peer_B::unique_id = 0;
 map<int, Peer_B *> Peer_B::interface_list = map<int, Peer_B *>();
 vector<Peer_B *> Peer_B::available_list = vector<Peer_B *>();
 function<void (Peer_B *, struct Data_Package *)> Peer_B::hook_core_recv = nullptr;

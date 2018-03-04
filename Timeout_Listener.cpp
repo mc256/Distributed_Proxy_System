@@ -12,23 +12,16 @@ void Timeout_Listener::launch_program() {
         iss.str(this->argv[1]);
         if (iss.str().compare("server-socks5") == 0) {
             program_mode = "server-socks5  ";
-            sa_h = new Server_Accept<Handshake>(loop, "0.0.0.0", 9099);
-
-
+            sa_h = new Server_Accept<Handshake>(loop, "0.0.0.0", 9123);
 
         } else if (iss.str().compare("client") == 0) {
             program_mode = "client         ";
             (new Client_Core(loop, "0.0.0.0", 9100));
 
 
-
-
         } else if (iss.str().compare("peer-server") == 0) {
             program_mode = "peer           ";
-            sa_pau1 = new Server_Accept<Peer_A>(loop, "0.0.0.0", 9101);
-            sa_pau2 = new Server_Accept<Peer_A>(loop, "0.0.0.0", 9102);
-            sa_pau3 = new Server_Accept<Peer_A>(loop, "0.0.0.0", 9103);
-            sa_pau4 = new Server_Accept<Peer_A>(loop, "0.0.0.0", 9104);
+            (new Peer_Core(loop, "0.0.0.0", 9101, 9105));
 
 
         }

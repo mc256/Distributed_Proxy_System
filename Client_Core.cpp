@@ -25,33 +25,34 @@ void Client_Core::up_link_transport(Client_A * a){
     b->wf->start();
 }
 
+
+void Client_Core::load_config(){
+    ifstream setting_file;
+    setting_file.open("client_settings.txt");
+    if (setting_file.good()){
+        string addr;
+        int port;
+        string password;
+        while (setting_file >> addr >> port >> password){
+            struct Proxy_Peer *setting = new struct Proxy_Peer;
+            setting->address = addr;
+            setting->port = port;
+            setting->password = password;
+            pp_list.push_back(setting);
+        }
+    }else{
+        cout << "Cannot load settings" << endl;
+        exit(1);
+    }
+}
+
+
 Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     this->loop = loop;
     this->address = address;
     this->port = port;
 
-    // load peer settings
-    struct Proxy_Peer *pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9101;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9102;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9103;
-    pp->password = "password";
-    pp_list.push_back(pp);
-    pp = new struct Proxy_Peer;
-    pp->address = "127.0.0.1";
-    pp->port = 9104;
-    pp->password = "password";
-    pp_list.push_back(pp);
-
+    load_config();
 
     // A face ------------------------------------------------------------
     Client_A::hook_core_recv = [this](Client_A * a){
