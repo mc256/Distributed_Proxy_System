@@ -7,7 +7,7 @@
 
 void Client_A::attach_meta(){
     //Adding Package Information
-    memcpy(this->meta.sequence_id, (char *) &this->sequence_id, sizeof(this->meta.sequence_id));
+    memcpy(this->meta.sequence_id, (char *) &this->seq_up, sizeof(this->meta.sequence_id));
     memcpy(this->meta.size, (char *) &rf->buffer->back()->size, sizeof(this->meta.size));
     memcpy(this->read_buffer.back()->buffer, &this->meta, sizeof(this->meta));
     this->read_buffer.back()->size += sizeof(this->meta);
@@ -16,7 +16,7 @@ void Client_A::attach_meta(){
     if (Client_A::hook_core_recv != nullptr) {
         Client_A::hook_core_recv(this);
     }
-    this->sequence_id ++;
+    this->seq_up ++;
 }
 
 
@@ -46,12 +46,24 @@ void Client_A::start() {
     this->wf->start();
 }
 
+void Client_A::flush_sort_pool() {
+    while (true){
+        auto * d = write_sort_pool[seq_down];
+        if (d == nullptr){
+            break;
+        }
+        write_buffer.push_back(d);
+        write_sort_pool.erase(seq_down);
+        seq_down ++;
+    }
+    this->wf->start();
+}
 
 /////////////////////////////////////
 Client_A::Client_A(ev::default_loop *loop, int socket_id) {
     this->loop = loop;
     this->socket_id = socket_id;
-    this->sequence_id = 0;
+    this->seq_up = 0;
 
     this->dispatcher_id = ++unique_id;
     Client_A::interface_list[this->dispatcher_id] = this;

@@ -11,25 +11,31 @@ class Client_A{
 private:
     ev::default_loop * loop;
     int socket_id;
+    int dispatcher_id;
     static int unique_id;
-    int sequence_id;
+    int seq_up, seq_down;
+
     struct Data_Meta meta;
-    bool active;
+
 
     void attach_meta();
 public:
-    int dispatcher_id;
 
     static map<int, Client_A *> interface_list;
 
     deque<struct Data_Package *> read_buffer;
     deque<struct Data_Package *> write_buffer;
+    map<int,struct Data_Package *> write_sort_pool;
+
     R_Filter * rf;
     W_Filter * wf;
+
+    bool active;
 
     static function<void (Client_A *)> hook_core_recv;
 
     void start();
+    void flush_sort_pool();
 
     /////////////////////////////////////
     Client_A(ev::default_loop * loop, int socket_id);

@@ -5,7 +5,6 @@
 #include "Peer_Core.hpp"
 
 void Peer_Core::up_link_transport(Peer_A * a, struct Data_Package * d, struct Data_Meta * m){
-
     // Retire package information
     auto dispatcher_id = (int) *m->dispatcher_id;
     auto sequence_id = (int) *m->sequence_id;

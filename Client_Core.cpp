@@ -25,6 +25,21 @@ void Client_Core::up_link_transport(Client_A * a){
     b->wf->start();
 }
 
+void Client_Core::down_link_transport(Client_B * b, Data_Package * d, Data_Meta * m){
+    // Retire package information
+    auto dispatcher_id = (int) * m->dispatcher_id;
+    auto sequence_id = (int) * m->sequence_id;
+    auto user_id =  (int) * m->user_id;
+
+    // dispatch to specific Client_A classes
+    auto * interface = &Client_A::interface_list[dispatcher_id];
+    if (* interface == nullptr){
+        //TODO: send notification to Peer: this interface is closed.
+    }else{
+        (*interface)->write_sort_pool[sequence_id] = d;
+        (*interface)->flush_sort_pool();
+    }
+}
 
 void Client_Core::load_config(){
     ifstream setting_file;
@@ -62,9 +77,8 @@ Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     this->sa_ca = new Server_Accept<Client_A>(loop, address, port);
 
     // B face ------------------------------------------------------------
-    Client_B::hook_core_recv = [this](Client_B *b, struct Data_Package * d) {
-        // copy to write queue on A
-
+    Client_B::hook_core_recv = [this](Client_B *b, struct Data_Package * d, Data_Meta * m) {
+        this->down_link_transport(b, d, m);
     };
     for_each(pp_list.begin(), pp_list.end(), [this](struct Proxy_Peer *p) {
         (new Server_Connect<Client_B>(new Client_B(this->loop, p)));
