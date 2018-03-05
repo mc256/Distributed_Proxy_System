@@ -33,6 +33,7 @@ void Client_Core::load_config(){
         string addr;
         int port;
         string password;
+        setting_file >> password_confirm;
         while (setting_file >> addr >> port >> password){
             struct Proxy_Peer *setting = new struct Proxy_Peer;
             setting->address = addr;
@@ -70,3 +71,5 @@ Client_Core::Client_Core(ev::default_loop *loop, string address, int port) {
     });
 
 }
+
+string Client_Core::password_confirm = "";

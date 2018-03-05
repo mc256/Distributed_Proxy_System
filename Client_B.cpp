@@ -28,14 +28,7 @@ void Client_B::remove_package_with_dispatcher_id(int id) {
     // TODO
 }
 
-void Client_B::mark_unavailable(){
-    this->active = false;
-    vector<Client_B *>::iterator i = find(Client_B::available_list.begin(),Client_B::available_list.end(),this);
-    if (i != Client_B::available_list.end()){
-        Client_B::available_list.erase(i);
-    }
-    // need for clean up
-}
+
 /////////////////////////////////////
 // STEP 1
 void Client_B::start() {
@@ -52,7 +45,7 @@ void Client_B::start() {
     // read
     this->rf = new R_Filter(loop, &this->read_buffer, this->peer->descriptor, &this->rf, 0);
     this->rf->hook_recv = [this](R_Filter *rf) {
-        this->verify_peer(rf);
+        this->verify_peer();
     };
 
     // start everything
@@ -62,60 +55,130 @@ void Client_B::start() {
 }
 
 // STEP 2
-void Client_B::verify_peer(R_Filter *rf) {
+void Client_B::verify_peer() {
     struct Data_Package * data = this->read_buffer.front();
     //DEBUG(cout << string((char *) data->buffer) << endl;)
 
-    handshake_str << string((char *) data->buffer);
-    string key = Encryption::sha_hash("TODO");
-    size_t found = handshake_str.str().find(key);
-    if (found == string::npos) {
-        this->read_buffer.pop_front();
-        delete data;
-        return;
-    }
+    read_stream.write((char *) data->buffer, data->size);
 
-    // Clean up handshake header
-    size_t first_packet_size = handshake_str.str().length() - found - key.size();
-    if (first_packet_size == 0){
-        this->read_buffer.pop_front();
-        delete data;
-    }else{
-        int start = data->size - first_packet_size;
-        for (int i = 0; i < first_packet_size; i++){
-            data->buffer[i] = data->buffer[start + i];
+    // Check if key exists
+    string key = Encryption::sha_hash(Client_Core::password_confirm);
+    size_t found = read_stream.str().find(key);
+    if (found != string::npos) {
+
+        // Setup hooks
+        this->rf->hook_recv = [this](R_Filter * rf){
+            this->split_package();
+        };
+        this->rf->hook_closed = [this](R_Filter * rf){
+            this->shutdown();
+        };
+        this->wf->hook_closed = [this](W_Filter * wf){
+            this->shutdown();
+        };
+
+        // Calculate offset
+        int first_packet_size = read_stream.str().length() - found - key.size();
+
+        // Reset Read Stream
+        this->read_size = 0;
+        this->package_offset = 0;
+        this->read_stream.str("");
+        this->read_stream.clear();
+
+        // Cut useless package
+        if (first_packet_size == 0){
+            this->read_buffer.pop_front();
+            delete data;
+        }else{
+            this->package_offset = data->size - first_packet_size;
+            data->size = first_packet_size;
+            this->split_package();
         }
-        data->size = first_packet_size;
+
+        // Mark available
+        this->active = true;
+        Client_B::available_list.push_back(this);
+
+    }else{
+        this->read_buffer.pop_front();
+        delete data;
     }
-
-    // mark as available
-    this->rf->hook_recv = [this](R_Filter * rf){
-        this->analyse_read_buffer();
-    };
-    this->rf->hook_closed = [this](R_Filter * rf){
-        this->analyse_read_buffer();
-        this->mark_unavailable();
-
-    };
-    this->wf->hook_closed = [this](W_Filter * wf){
-        this->analyse_read_buffer();
-        this->mark_unavailable();
-    };
-
-
-    this->active = true;
-    Client_B::available_list.push_back(this);
 
 }
 
-void Client_B::analyse_read_buffer(){
-    // split the packet
+void Client_B::split_package(){
+    while (!this->read_buffer.empty()) {
+        auto *d = this->read_buffer.front();
+        auto size = this->read_stream.str().size();
 
-    struct Data_Package * d = new struct Data_Package;
+        if (size < sizeof(struct Data_Meta)) {
+            auto diff_1 = sizeof(struct Data_Meta) - size;
+            auto diff_2 = d->size - this->package_offset;
+            if (diff_2 <= diff_1) {
+                // Use the entire package for the meta information
+                this->read_stream.write((char *) d->buffer + this->package_offset, diff_2);
+                this->package_offset = 0;
+                this->read_buffer.pop_front();
+                delete d;
+                continue;
+            } else {
+                // there are still some useful information in the package
+                this->read_stream.write((char *) d->buffer + this->package_offset, diff_1);
+                this->package_offset += diff_1;
+                size += diff_1;
+            }
+        }
 
-    if (Client_B::hook_core_recv != nullptr){
-        Client_B::hook_core_recv(this, d);
+        if (size == sizeof(struct Data_Meta)) {
+            this->package_holder = new struct Data_Package;
+            this->meta_holder = new struct Data_Meta;
+            memcpy(this->meta_holder, this->read_stream.str().c_str(), sizeof(struct Data_Meta));
+            memcpy(&this->read_size, &this->meta_holder->size, sizeof(int));
+            this->package_holder->sent = 0;
+        }
+
+        //this->package_holder->size + sizeof(struct Data_Meta) == size
+        if (size >= sizeof(struct Data_Meta)) {
+            auto diff_1 = this->read_size + sizeof(struct Data_Meta) - size;
+            auto diff_2 = d->size - this->package_offset;
+            if (diff_1 < diff_2){
+                //copy
+                this->read_stream.write((char *) d->buffer + this->package_offset, diff_1);
+                //set offset
+                this->package_offset += diff_1;
+                //send signal to hook
+            }else if (diff_1 == diff_2){
+                //copy
+                this->read_stream.write((char *) d->buffer + this->package_offset, diff_1);
+                //reset offset to zero
+                this->package_offset = 0;
+                //delete package
+                this->read_buffer.pop_front();
+                delete d;
+                //send signal to hook
+            }else{
+                //copy
+                this->read_stream.write((char *) d->buffer + this->package_offset, diff_2);
+                //reset offset to zero
+                this->package_offset = 0;
+                //delete package
+                this->read_buffer.pop_front();
+                delete d;
+                continue;
+            }
+
+            memcpy(this->package_holder, this->read_stream.rdbuf() + sizeof(struct Data_Meta), this->read_size);
+            if (this->hook_core_recv != nullptr) {
+                this->hook_core_recv(this, this->package_holder, this->meta_holder);
+            }
+        }
     }
+}
+
+void Client_B::shutdown() {
+    this->active = false;
+    delete this;
 }
 
 /////////////////////////////////////
@@ -127,13 +190,12 @@ Client_B::Client_B(ev::default_loop *loop, struct Proxy_Peer *peer) {
     this->peer = peer;
 
     this->dispatcher_id = ++unique_id;
-    peer->interface = (void *) this;
     Client_B::interface_list[this->dispatcher_id] = this;
 
+    this->read_stream.str("");
 }
 
 Client_B::~Client_B() {
-    this->mark_unavailable();
     if (this->rf != nullptr){
         this->rf->passive_terminate();
     }
@@ -148,8 +210,14 @@ Client_B::~Client_B() {
         delete write_buffer[i];
     }
     write_buffer.clear();
-    Client_B::interface_list.erase(this->dispatcher_id);
 
+    Client_B::interface_list.erase(this->dispatcher_id);
+    for (int i = 0; i < Client_B::available_list.size(); ++i) {
+        if (Client_B::available_list[i] == this){
+            Client_B::available_list.erase(Client_B::available_list.begin() + i);
+            break;
+        }
+    }
 }
 
 string Client_B::info() {
@@ -161,8 +229,7 @@ string Client_B::info() {
 }
 
 
-
 int Client_B::unique_id = 0;
 vector<Client_B *> Client_B::available_list = vector<Client_B *>();
 map<int, Client_B *> Client_B::interface_list = map<int, Client_B *>();
-function<void (Client_B *, struct Data_Package *)> Client_B::hook_core_recv = nullptr;
+function<void (Client_B *, struct Data_Package *, Data_Meta *)> Client_B::hook_core_recv = nullptr;

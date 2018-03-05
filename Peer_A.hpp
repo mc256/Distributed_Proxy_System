@@ -13,8 +13,8 @@ private:
     int socket_id;
     int dispatcher_id;
     static int unique_id;
-    string password;
 
+    string password;
 public:
     static map<int, Peer_A *> interface_list;
     static vector<Peer_A *> available_list;

@@ -48,6 +48,7 @@ void Peer_Core::load_config(){
         string addr;
         int port;
         string password;
+        setting_file >> password_connect >> password_confirm;
         while (setting_file >> addr >> port >> password){
             struct Proxy_Peer *setting = new struct Proxy_Peer;
             setting->address = addr;
@@ -81,3 +82,6 @@ Peer_Core::Peer_Core(ev::default_loop *loop, string address, int port_begin, int
     };
 
 }
+
+string Peer_Core::password_connect = "";
+string Peer_Core::password_confirm = "";

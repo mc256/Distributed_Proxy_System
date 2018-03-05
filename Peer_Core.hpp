@@ -27,6 +27,9 @@ private:
     void load_config();
 
 public:
+    static string password_connect;
+    static string password_confirm;
+
     Peer_Core(ev::default_loop *loop, string address, int port_begin, int port_end);
 };
 

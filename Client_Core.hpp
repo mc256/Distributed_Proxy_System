@@ -27,6 +27,8 @@ private:
     void load_config();
 
 public:
+    static string password_confirm;
+
     /////////////////////////////////////
     Client_Core(ev::default_loop * loop, string address, int port);
 

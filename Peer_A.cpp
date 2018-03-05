@@ -32,6 +32,8 @@ void Peer_A::verify_client() {
     read_stream.write((char *) data->buffer, data->size);
     size_t found = read_stream.str().find('\n');
     if (found == string::npos) {
+        this->read_buffer.pop_front();
+        delete data;
         return;
     }
 
@@ -55,19 +57,21 @@ void Peer_A::verify_client() {
     string key = Encryption::sha_hash(password);
     found = read_stream.str().find(key);
     if (found != string::npos) {
-        response << Encryption::sha_hash("TODO"); //TODO: the password
+        response << Encryption::sha_hash(Peer_Core::password_confirm); //TODO: the password
 
-        // Setup hook
+        // Setup hooks
         this->rf->hook_recv = [this](R_Filter *rf) {
             this->split_package();
         };
         this->rf->hook_closed = [this](R_Filter * rf){
             this->shutdown();
         };
+        this->wf->hook_closed = [this](W_Filter * wf){
+            this->shutdown();
+        };
 
-        // Cut useless package
+        // Calculate offset
         int first_packet_size = read_stream.str().length() - found - key.size();
-        cout << read_stream.str() << endl;
 
         // Reset Read Stream
         this->read_size = 0;
@@ -75,6 +79,7 @@ void Peer_A::verify_client() {
         this->read_stream.str("");
         this->read_stream.clear();
 
+        // Cut useless package
         if (first_packet_size == 0) {
             this->read_buffer.pop_front();
             delete data;
@@ -91,6 +96,7 @@ void Peer_A::verify_client() {
 
     } else {
         this->read_buffer.pop_front();
+        delete data;
     }
 
     // Send back response
@@ -185,10 +191,27 @@ Peer_A::Peer_A(ev::default_loop *loop, int socket_id) {
 
     this->dispatcher_id = ++unique_id;
     Peer_A::interface_list[this->dispatcher_id] = this;
-    this->password = "password"; // TODO: need to load from some file
+    this->password = Peer_Core::password_connect;
+
+    this->read_stream.str("");
 }
 
 Peer_A::~Peer_A() {
+    if (this->rf != nullptr){
+        this->rf->passive_terminate();
+    }
+    if (this->wf != nullptr){
+        this->wf->passive_terminate();
+    }
+    for (int i = 0; i < read_buffer.size(); i++) {
+        delete read_buffer[i];
+    }
+    read_buffer.clear();
+    for (int i = 0; i < write_buffer.size(); i++) {
+        delete write_buffer[i];
+    }
+    write_buffer.clear();
+
     Peer_A::interface_list.erase(this->dispatcher_id);
     for (int i = 0; i < Peer_A::available_list.size(); ++i) {
         if (Peer_A::available_list[i] == this){
