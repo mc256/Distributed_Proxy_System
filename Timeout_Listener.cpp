@@ -26,18 +26,8 @@ void Timeout_Listener::launch_program() {
 
         }
     } else {
-        // what we are testing
-        /*
-        program_mode = "testing        ";
-        pp = new struct Proxy_Peer;
-        pp->address = "192.99.161.69";
-        pp->port = 9100;
-        pp->password = "iampassword";
-        sc_test = new Server_Connect<Client_B>(loop, pp);
-        */
-        //Client_B::generate_fake_request(pp);
-        program_mode = "client         ";
-        (new Client_Core(loop, "0.0.0.0", 9100));
+        //new Z_Test_Connect(this->loop, "192.99.161.69", 80);
+        new Z_Test_Connect(this->loop, "127.0.0.1", 25);
     }
 }
 
