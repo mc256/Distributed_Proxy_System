@@ -23,7 +23,13 @@ void Peer_Core::up_link_transport(Peer_A * a, struct Data_Package * d, struct Da
 void Peer_Core::down_link_transport(Peer_B * b, struct Data_Package * d){
     // copy to send queue on A
     // randomly select one peer from available proxy peer list
-    Peer_A * a = Peer_A::available_list[rand() % Peer_A::available_list.size()];
+    int items = Peer_A::available_list.size();
+    if (items <= 0){
+        // TODO: NO available peer, need to connect
+        return;
+    }
+
+    Peer_A * a = Peer_A::available_list[rand() % items];
     for_each(b->read_buffer.begin(), b->read_buffer.end(), [this, a](struct Data_Package * d){
         // If it has waited for too long, resend the package
         if (d->timestamp < time(NULL) - RESEND_PERIOD) {

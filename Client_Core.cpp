@@ -7,7 +7,13 @@
 void Client_Core::up_link_transport(Client_A * a){
     // copy to send queue on B
     // randomly select one peer from available proxy peer list
-    Client_B * b = Client_B::available_list[rand() % Client_B::available_list.size()];
+    int items = Client_B::available_list.size();
+    if (items <= 0){
+        // TODO: NO available peer, need to connect
+        return;
+    }
+
+    Client_B * b = Client_B::available_list[rand() % items];
     for_each(a->read_buffer.begin(),a->read_buffer.end(), [this, b](struct Data_Package * d){
         // If it has wait for too long, resend
         if (d->timestamp < time(NULL) - RESEND_PERIOD){
@@ -50,7 +56,7 @@ void Client_Core::load_config(){
         string password;
         setting_file >> password_confirm;
         while (setting_file >> addr >> port >> password){
-            struct Proxy_Peer *setting = new struct Proxy_Peer;
+            auto *setting = new struct Proxy_Peer;
             setting->address = addr;
             setting->port = port;
             setting->password = password;

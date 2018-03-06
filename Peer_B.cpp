@@ -23,8 +23,12 @@ void Peer_B::attach_meta(){
 
 /////////////////////////////////////
 void Peer_B::start(){
-
+    this->socket_id = this->peer->descriptor;
     fcntl(this->socket_id, F_SETFL, fcntl(this->socket_id, F_GETFL) | O_NONBLOCK);
+
+    if (this->socket_id == 0){
+        cout << "it is zero!!!" << endl;
+    }
 
     // write
     this->wf = new W_Filter(loop, &this->write_buffer, this->socket_id, &this->wf);
@@ -55,7 +59,9 @@ void Peer_B::flush_sort_pool(){
         write_sort_pool.erase(seq_up);
         seq_up ++;
     }
-    this->wf->start();
+    if (this->active && this->rf != NULL && this->wf != NULL){
+        this->wf->start();
+    }
 }
 
 /////////////////////////////////////
