@@ -10,7 +10,7 @@ void Async_Write::stop_watchers() {
 }
 
 void Async_Write::write_callback(ev::io &w, int r) {
-    auto s = send(this->descriptor, this->buffer + this->position, (size_t) this->length - this->position, 0);
+    auto s = send(this->descriptor, this->buffer + this->position, this->length - this->position, 0);
     if (s > 0){
         this->position += s;
         if (this->position == this->length){
