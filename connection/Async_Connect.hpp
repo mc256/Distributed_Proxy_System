@@ -18,7 +18,6 @@ private:
     ev::io read_io_watcher;
     ev::timer timeout_watcher;
 
-
     void stop_watchers();
 public:
     void read_callback(ev::io &w, int r);

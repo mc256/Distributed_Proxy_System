@@ -5,7 +5,7 @@
 #include "Command_Listener.hpp"
 
 
-void Command_Listener::callback(ev::io &watcher, int revents) {
+void Command_Listener::callback(ev::io &w, int r) {
     count++;
     string input;
     getline(cin, input);

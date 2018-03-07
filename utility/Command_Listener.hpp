@@ -12,10 +12,10 @@ private:
     ev::io watcher;
     int count;
 
-    void callback(ev::io &watcher, int revents);
+    void callback(ev::io &w, int r);
 
 public:
-    Command_Listener(ev::default_loop *loop);
+    explicit Command_Listener(ev::default_loop *loop);
 };
 
 

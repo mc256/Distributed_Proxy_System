@@ -133,6 +133,7 @@ class Command_Listener;
 #include "Z_Test_Connect.hpp"
 #include "connection/Async_Connect.hpp"
 #include "connection/Async_Accept.hpp"
+#include "connection/Async_Read.hpp"
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
 

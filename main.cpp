@@ -15,10 +15,31 @@ int main(int argc, char **argv) {
 
         /////////////////////////////////////////
         // Async_Connect Example
-        auto c = new Async_Connect(&loop, "158.69.34.50", 80, 10);
-        c->connected_event = [c](int d){
+        auto c = new Async_Connect(&loop, "127.0.0.1", 25, 10);
+        c->connected_event = [c, &loop](int d){
             cout << "Async_Connect connected" << endl;
             delete c;
+
+
+
+
+            char buf[10];
+            auto ar = new Async_Read(&loop, d, buf, 10);
+            ar->set_timeout(10);
+            ar->read_event = [buf](){
+                cout << string(buf) << endl;
+            };
+            ar->closed_event = [](){
+                cout << "test" << endl;
+            };
+            ar->failed_event = [](){
+                cout << "test222" << endl;
+            };
+            ar->start();
+
+
+
+
         };
         c->failed_event = [c](){
             cout << "Async_Connect timeout" << endl;
