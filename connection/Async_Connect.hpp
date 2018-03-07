@@ -8,10 +8,10 @@
 #include "../main.hpp"
 
 class Async_Connect {
-
+private:
     int descriptor;
 
-    struct sockaddr_in connect_address;
+    sockaddr_in connect_address;
     socklen_t connect_address_length;
 
     ev::io write_io_watcher;
@@ -32,6 +32,7 @@ public:
 
     Async_Connect(ev::default_loop *loop,
                   string address, int port, int timeout);
+    ~Async_Connect();
 };
 
 

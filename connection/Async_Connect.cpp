@@ -69,3 +69,9 @@ Async_Connect::Async_Connect(ev::default_loop *loop,
     this->timeout_watcher.set<Async_Connect, &Async_Connect::timeout_callback>(this);
     this->timeout_watcher.set(timeout, timeout);
 }
+
+Async_Connect::~Async_Connect() {
+    this->stop_watchers();
+    this->connected_event = nullptr;
+    this->failed_event = nullptr;
+}

@@ -132,6 +132,7 @@ class Command_Listener;
 #include "Peer_Core.hpp"
 #include "Z_Test_Connect.hpp"
 #include "connection/Async_Connect.hpp"
+#include "connection/Async_Accept.hpp"
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
 
