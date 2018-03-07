@@ -18,8 +18,6 @@ class Async_Connect {
     ev::io read_io_watcher;
     ev::timer timeout_watcher;
 
-    function<void(int)> * connected_event;
-    function<void()> * failed_event;
 
     void stop_watchers();
 public:
@@ -27,9 +25,13 @@ public:
     void write_callback(ev::io &w, int r);
     void timeout_callback(ev::timer &w, int r);
 
+    function<void(int)> connected_event;
+    function<void()> failed_event;
+
+    void start();
+
     Async_Connect(ev::default_loop *loop,
-                  string& address, int& port, int& timeout,
-                  function<void(int)> *connected, function<void()> *failed);
+                  string address, int port, int timeout);
 };
 
 

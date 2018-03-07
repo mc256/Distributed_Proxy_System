@@ -131,8 +131,10 @@ class Command_Listener;
 #include "Client_Core.hpp"
 #include "Peer_Core.hpp"
 #include "Z_Test_Connect.hpp"
+#include "connection/Async_Connect.hpp"
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
+
 
 
 #endif //PRPR_MAIN_H

@@ -1,27 +1,30 @@
 #include "main.hpp"
 
-typedef function<void()> function1;
 using namespace std;
 
 
-int main (int argc, char ** argv) {
+int main(int argc, char **argv) {
     //Signal issue
     signal(SIGPIPE, SIG_IGN);
 
     //EV loop
     ev::default_loop loop;
-    function1 after_launch = [&argc, &argv, &loop]{
 
 
+    function<void()> after_launch = [&argc, &argv, &loop] {
 
-
-
-
-
-
-
+        auto c = new Async_Connect(&loop, "158.69.34.50", 80, 10);
+        c->connected_event = [](int d){
+            cout << "connected22" << endl;
         };
-    function<void(int)> repeat_event = [](int d){
+        c->failed_event = [](){
+            cout << "timeout" << endl;
+        };
+        c->start();
+
+
+    };
+    function<void(int)> repeat_event = [](int d) {
 
     };
 
