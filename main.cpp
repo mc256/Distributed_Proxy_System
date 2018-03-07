@@ -1,5 +1,6 @@
 #include "main.hpp"
 
+typedef function<void()> function1;
 using namespace std;
 
 
@@ -9,9 +10,17 @@ int main (int argc, char ** argv) {
 
     //EV loop
     ev::default_loop loop;
-    function<void()> after_launch = [&argc, &argv, &loop]{
+    function1 after_launch = [&argc, &argv, &loop]{
 
-    };
+
+
+
+
+
+
+
+
+        };
     function<void(int)> repeat_event = [](int d){
 
     };

@@ -4,16 +4,29 @@
 
 #include "Async_Connect.hpp"
 
+void Async_Connect::stop_watchers() {
+    this->read_io_watcher.stop();
+    this->write_io_watcher.stop();
+    this->timeout_watcher.stop();
+}
+
 void Async_Connect::read_callback(ev::io &w, int r) {
+    this->stop_watchers();
     (*this->connected_event)(this->descriptor);
 }
 
 void Async_Connect::write_callback(ev::io &w, int r) {
+    this->stop_watchers();
     (*this->connected_event)(this->descriptor);
 }
 
+void Async_Connect::timeout_callback(ev::timer &w, int r) {
+    this->stop_watchers();
+    (*this->failed_event)();
+}
+
 Async_Connect::Async_Connect(ev::default_loop *loop,
-                             string& address, int& port,
+                             string& address, int& port, int& timeout,
                              function<void(int)> *connected, function<void()> *failed) {
     //Events
     this->connected_event = connected;
@@ -45,6 +58,10 @@ Async_Connect::Async_Connect(ev::default_loop *loop,
     this->write_io_watcher.set<Async_Connect, &Async_Connect::write_callback>(this);
     this->write_io_watcher.set(this->descriptor, ev::WRITE);
     this->write_io_watcher.start();
+
+    this->timeout_watcher.set(*loop);
+    this->timeout_watcher.set<Async_Connect, &Async_Connect::timeout_callback>(this);
+    this->timeout_watcher.start(timeout, timeout);
 
 
 }
