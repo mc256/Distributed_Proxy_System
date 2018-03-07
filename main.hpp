@@ -132,7 +132,7 @@ class Command_Listener;
 #include "Peer_Core.hpp"
 #include "Z_Test_Connect.hpp"
 #include "utility/Timeout_Listener.hpp"
-#include "Command_Listener.hpp"
+#include "utility/Command_Listener.hpp"
 
 
 #endif //PRPR_MAIN_H

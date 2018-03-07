@@ -15,16 +15,18 @@ private:
 
     int count;
 
-    void operator()(ev::io &watcher, int revents);
 
-    function<void()> after_launch;
-    function<void(int)> repeat_event;
+    function<void()> * after_launch;
+    function<void(int)> * repeat_event;
 
 public:
+    // Call back
+    void operator()(ev::timer &w, int r);
+
     // Constructor
     Timeout_Listener(ev::default_loop *loop, double after, double repeat,
-                     function<void()>& after_launch,
-                     function<void(int)>& repeat_event);
+                     function<void()> * after_launch,
+                     function<void(int)> * repeat_event);
 
 };
 

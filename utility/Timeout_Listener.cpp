@@ -7,19 +7,19 @@
 #include <utility>
 
 
-void Timeout_Listener::operator()(ev::io &watcher, int revents) {
+void Timeout_Listener::operator()(ev::timer &w, int r) {
     if (count == 0) {
-        this->after_launch();
+        (*this->after_launch)();
     } else {
-        this->repeat_event(this->count);
+        (*this->repeat_event)(this->count);
     }
     count ++;
 }
 
 // Constructor
 Timeout_Listener::Timeout_Listener(ev::default_loop *loop, double after, double repeat,
-                                   function<void()>& after_launch,
-                                   function<void(int)>& repeat_event) {
+                                   function<void()>* after_launch,
+                                   function<void(int)>* repeat_event) {
     this->count = 0;
     this->after_launch = after_launch;
     this->repeat_event = repeat_event;

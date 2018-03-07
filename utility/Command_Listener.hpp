@@ -5,7 +5,7 @@
 #ifndef PRPR_COMMAND_LISTENER_HPP
 #define PRPR_COMMAND_LISTENER_HPP
 
-#include "main.hpp"
+#include "../main.hpp"
 
 class Command_Listener {
 private:
