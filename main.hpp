@@ -134,6 +134,7 @@ class Command_Listener;
 #include "connection/Async_Connect.hpp"
 #include "connection/Async_Accept.hpp"
 #include "connection/Async_Read.hpp"
+#include "connection/Async_Write.hpp"
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
 

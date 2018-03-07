@@ -10,17 +10,16 @@ void Async_Read::stop_watchers() {
 }
 
 void Async_Read::read_callback(ev::io &w, int r) {
-    auto s = recv(this->descriptor, this->buffer + position, (size_t) length - position, 0);
+    auto s = recv(this->descriptor, this->buffer + this->position, (size_t) this->length - this->position, 0);
     if (s > 0) {
-        position += s;
-        if (position == length) {
+        this->position += s;
+        if (this->position == this->length) {
             this->stop_watchers();
             this->read_event();
         }
     } else if (s == 0) {
         this->stop_watchers();
         this->closed_event();
-        return;
     } else {
         if (!(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
             this->stop_watchers();
