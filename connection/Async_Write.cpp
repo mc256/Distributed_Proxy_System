@@ -44,6 +44,29 @@ void Async_Write::start() {
     this->write_io_watcher.start();
 }
 
+
+void Async_Write::reset(char *buffer, ssize_t length){
+    this->buffer = buffer;
+    this->length = length;
+    this->position = 0;
+}
+
+Async_Write::Async_Write(ev::default_loop *loop, int descriptor) {
+    // Copy values
+    this->descriptor = descriptor;
+    this->position = 0;
+    this->timeout = 0;
+
+    // Set watchers
+    this->write_io_watcher.set(*loop);
+    this->write_io_watcher.set<Async_Write, &Async_Write::write_callback>(this);
+    this->write_io_watcher.set(this->descriptor, ev::WRITE);
+
+    this->timeout_watcher.set(*loop);
+    this->timeout_watcher.set<Async_Write, &Async_Write::timeout_callback>(this);
+
+}
+
 Async_Write::Async_Write(ev::default_loop *loop, int descriptor, char *buffer, ssize_t length) {
     // Copy values
     this->descriptor = descriptor;

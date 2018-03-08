@@ -5,7 +5,7 @@
 #ifndef PRPR_ENCRYPTION_HPP
 #define PRPR_ENCRYPTION_HPP
 
-#include "main.hpp"
+#include "../main.hpp"
 
 class Encryption {
 

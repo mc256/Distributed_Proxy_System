@@ -44,6 +44,7 @@
 
 #define MAX_BUFFER_SIZE 2048
 #define RESEND_PERIOD 30
+#define DEFAULT_TIMEOUT 30
 
 struct SOCKS_Version_Client{
     UCHAR ver;
@@ -88,59 +89,45 @@ struct Data_Meta{
     UCHAR size[4]; //int
 };
 
-struct Proxy_Peer{
-    std::string address;
-    int port;
-    int descriptor;
-    bool connected;
-    bool available;
-    std::string password;
-    void * interface;
-};
+
 
 using namespace std;
 
-
+class Container;
 class Encryption;
-class Channel;
-class Handshake;
-class W_Filter;
-class R_Filter;
-class Client_A;
-class Client_B;
-class Peer_A;
-class Peer_B;
-template <class T> class Server_Connect;
-template <class T> class Server_Accept;
-class Client_Core;
+class Packet;
+class Proxy_Peer;
+
 class Timeout_Listener;
 class Command_Listener;
 
-class Container;
+class Async_Connect;
+class Async_Accept;
+class Async_Read;
+class Async_Write;
 
+class Client_A;
+class Client_B;
 
-#include "Encryption.hpp"
-#include "Channel.hpp"
-#include "Handshake.hpp"
-#include "W_Filter.hpp"
-#include "R_Filter.hpp"
-#include "Client_A.hpp"
-#include "Client_B.hpp"
-#include "Peer_A.hpp"
-#include "Peer_B.hpp"
-#include "Server_Accept.hpp"
-#include "Server_Connect.hpp"
-#include "Client_Core.hpp"
-#include "Peer_Core.hpp"
-#include "Z_Test_Connect.hpp"
+class Client_Core;
+
 #include "utility/Container.hpp"
+#include "utility/Encryption.hpp"
+#include "utility/Packet.hpp"
+#include "utility/Proxy_Peer.hpp"
+
 #include "connection/Async_Connect.hpp"
 #include "connection/Async_Accept.hpp"
 #include "connection/Async_Read.hpp"
 #include "connection/Async_Write.hpp"
+
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
 
+#include "interface/Client_A.hpp"
+#include "interface/Client_B.hpp"
+
+#include "program/Client_Core.hpp";
 
 
 #endif //PRPR_MAIN_H

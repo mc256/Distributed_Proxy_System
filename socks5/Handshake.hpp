@@ -5,7 +5,7 @@
 #ifndef PRPR_HANDSHAKE_HPP
 #define PRPR_HANDSHAKE_HPP
 
-#include "main.hpp"
+#include "../main.hpp"
 
 class Handshake {
 

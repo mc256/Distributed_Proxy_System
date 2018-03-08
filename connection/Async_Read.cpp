@@ -11,6 +11,10 @@ void Async_Read::stop_watchers() {
 
 void Async_Read::read_callback(ev::io &w, int r) {
     auto s = recv(this->descriptor, this->buffer + this->position, (size_t) this->length - this->position, 0);
+
+    if (this->undefined_length){
+        this->length = s;
+    }
     if (s > 0) {
         this->position += s;
         if (this->position == this->length) {
@@ -33,6 +37,10 @@ void Async_Read::timeout_callback(ev::timer &w, int r) {
     this->failed_event(this->buffer, this->length);
 }
 
+void Async_Read::set_undefined_length(bool b) {
+    this->undefined_length = b;
+}
+
 void Async_Read::set_timeout(int i) {
     this->timeout = i;
 }
@@ -44,6 +52,27 @@ void Async_Read::start() {
     this->read_io_watcher.start();
 }
 
+void Async_Read::reset(char *buffer, ssize_t length){
+    this->buffer = buffer;
+    this->length = length;
+    this->position = 0;
+}
+
+Async_Read::Async_Read(ev::default_loop *loop, int descriptor) {
+    // Copy values
+    this->descriptor = descriptor;
+    this->timeout = 0;
+    this->undefined_length = false;
+
+    // Set watchers
+    this->read_io_watcher.set(*loop);
+    this->read_io_watcher.set<Async_Read, &Async_Read::read_callback>(this);
+    this->read_io_watcher.set(this->descriptor, ev::READ);
+
+    this->timeout_watcher.set(*loop);
+    this->timeout_watcher.set<Async_Read, &Async_Read::timeout_callback>(this);
+}
+
 Async_Read::Async_Read(ev::default_loop *loop, int descriptor, char *buffer, ssize_t length) {
     // Copy values
     this->descriptor = descriptor;
@@ -51,6 +80,7 @@ Async_Read::Async_Read(ev::default_loop *loop, int descriptor, char *buffer, ssi
     this->position = 0;
     this->length = length;
     this->timeout = 0;
+    this->undefined_length = false;
 
     // Set watchers
     this->read_io_watcher.set(*loop);

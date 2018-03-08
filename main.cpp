@@ -15,18 +15,18 @@ int main(int argc, char **argv) {
     timeout_l.after_launch = [argc, argv, &loop] (Container * c){
         if (argc > 1){
             string s(argv[1]);
-            if (s == "server-socks5") {
-                c->mode = "server-socks5  ";
-
-
-
-            }else if (s == "client") {
+            if (s == "client") {
                 c->mode = "client         ";
 
 
 
             }else if (s == "peer-server") {
                 c->mode = "peer           ";
+
+
+
+            }else if (s == "server-socks5") {
+                c->mode = "server-socks5  ";
 
 
 

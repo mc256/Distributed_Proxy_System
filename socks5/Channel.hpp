@@ -5,7 +5,7 @@
 #ifndef PRPR_CHANNEL_HPP
 #define PRPR_CHANNEL_HPP
 
-#include "main.hpp"
+#include "../main.hpp"
 
 class Channel {
 private:
