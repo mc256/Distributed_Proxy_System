@@ -116,6 +116,8 @@ class Client_Core;
 class Timeout_Listener;
 class Command_Listener;
 
+class Container;
+
 
 #include "Encryption.hpp"
 #include "Channel.hpp"
@@ -131,6 +133,7 @@ class Command_Listener;
 #include "Client_Core.hpp"
 #include "Peer_Core.hpp"
 #include "Z_Test_Connect.hpp"
+#include "utility/Container.hpp"
 #include "connection/Async_Connect.hpp"
 #include "connection/Async_Accept.hpp"
 #include "connection/Async_Read.hpp"

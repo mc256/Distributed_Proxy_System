@@ -15,22 +15,22 @@ void Async_Read::read_callback(ev::io &w, int r) {
         this->position += s;
         if (this->position == this->length) {
             this->stop_watchers();
-            this->read_event();
+            this->read_event(this->buffer, this->length);
         }
     } else if (s == 0) {
         this->stop_watchers();
-        this->closed_event();
+        this->closed_event(this->buffer, this->length);
     } else {
         if (!(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
             this->stop_watchers();
-            this->failed_event();
+            this->failed_event(this->buffer, this->length);
         }
     }
 }
 
 void Async_Read::timeout_callback(ev::timer &w, int r) {
     this->stop_watchers();
-    this->failed_event();
+    this->failed_event(this->buffer, this->length);
 }
 
 void Async_Read::set_timeout(int i) {

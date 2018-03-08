@@ -25,9 +25,9 @@ public:
     void write_callback(ev::io &w, int r);
     void timeout_callback(ev::timer &w, int r);
 
-    function <void()> wrote_event;
-    function <void()> closed_event;
-    function <void()> failed_event;
+    function <void(char *, ssize_t)> wrote_event;
+    function <void(char *, ssize_t)> closed_event;
+    function <void(char *, ssize_t)> failed_event;
 
     void set_timeout(int i);
     void start();

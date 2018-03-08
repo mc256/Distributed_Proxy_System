@@ -15,22 +15,22 @@ void Async_Write::write_callback(ev::io &w, int r) {
         this->position += s;
         if (this->position == this->length){
             this->stop_watchers();
-            this->wrote_event();
+            this->wrote_event(this->buffer, this->length);
         }
     }else if( s == 0){
         this->stop_watchers();
-        this->closed_event();
+        this->closed_event(this->buffer, this->length);
     }else{
         if (!(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
             this->stop_watchers();
-            this->failed_event();
+            this->failed_event(this->buffer, this->length);
         }
     }
 }
 
 void Async_Write::timeout_callback(ev::timer &w, int r) {
     this->stop_watchers();
-    this->failed_event();
+    this->failed_event(this->buffer, this->length);
 }
 
 void Async_Write::set_timeout(int i) {
