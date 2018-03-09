@@ -105,6 +105,7 @@ class Client_A;
 class Client_B;
 
 class Client_Core;
+class Socks_Core;
 
 class Channel;
 class Handshake;
@@ -126,6 +127,7 @@ class Handshake;
 #include "interface/Client_B.hpp"
 
 #include "program/Client_Core.hpp"
+#include "program/Socks_Core.hpp"
 
 #include "socks5/Channel.hpp"
 #include "socks5/Handshake.hpp"

@@ -26,7 +26,7 @@ public:
 
     string password_confirm;
 
-    // Configure
+    // Method
     void load_config();
     void start();
 

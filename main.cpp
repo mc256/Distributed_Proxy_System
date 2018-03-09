@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
 
             } else if (s == "server-socks5") {
                 c->mode = "server-socks5  ";
-
+                c->sc = new Socks_Core(c->loop);
+                c->sc->start();
 
             }
         } else {

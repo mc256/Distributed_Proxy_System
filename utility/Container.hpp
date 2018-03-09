@@ -12,6 +12,7 @@ public:
     string mode;
 
     Client_Core * cc;
+    Socks_Core * sc;
     ev::default_loop * loop;
 
 
