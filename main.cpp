@@ -12,35 +12,45 @@ int main(int argc, char **argv) {
 
     //EV listener
     Timeout_Listener timeout_l(&loop, 0, 2);
-    timeout_l.after_launch = [argc, argv] (Container * c){
-        if (argc > 1){
+    timeout_l.after_launch = [argc, argv](Container *c) {
+        if (argc > 1) {
             string s(argv[1]);
             if (s == "client") {
                 c->mode = "client         ";
                 c->cc = new Client_Core(c->loop);
                 c->cc->start();
 
-            }else if (s == "peer-server") {
+            } else if (s == "peer-server") {
                 c->mode = "peer           ";
 
 
-
-            }else if (s == "server-socks5") {
+            } else if (s == "server-socks5") {
                 c->mode = "server-socks5  ";
 
 
-
             }
-        }else{
+        } else {
             c->mode = "test           ";
-
 
 
         }
     };
-    timeout_l.repeat_event = [] (Container * c, int i){
+    timeout_l.repeat_event = [](Container *c, int i) {
         cout << c->mode << "---------------------->" << i << endl;
-
+        if (c->cc != nullptr) {
+            cout << "Client A:" << endl;
+            for (const auto &kv : c->cc->connection_a) {
+                cout << kv.first << "\t" << kv.second->info();
+            }
+            cout << "Client B:" << endl;
+            for (const auto &v : c->cc->connection_b) {
+                cout << v->info() << endl;
+            }
+            cout << "Client B available:" << endl;
+            for (const auto &v : c->cc->connection_b_available) {
+                cout << v->info() << endl;
+            }
+        }
     };
 
     Command_Listener command_l(&loop);

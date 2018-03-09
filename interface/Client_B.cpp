@@ -58,15 +58,10 @@ void Client_B::verify_peer(string s) {
         delete this;
     } else {
         prepare_for_use();
-
-        // Set Available
-        core->connection_b_available.push_back(this);
-        read_handler->start();
     }
 }
 
 // Features
-
 void Client_B::prepare_for_use() {
 
     // Reading Configuration
@@ -128,27 +123,23 @@ void Client_B::prepare_for_use() {
     // Writing Configuration
     write_handler->set_timeout(0);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
-
         delete write_pointer;
         write_pointer = nullptr;
 
-        if (write_buffer.empty()) {
-            on_writing = false;
-        } else {
-            write_pointer = write_buffer.front();
-            write_buffer.pop_front();
-
-            write_handler->reset(write_pointer->buffer, write_pointer->length);
-            write_handler->start();
-        }
+        on_writing = false;
+        start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
         delete this;
     };
-    on_writing = false;
+
+    // Set Available
+    core->connection_b_available.push_back(this);
+    read_handler->start();
 }
 
 void Client_B::start_writer() {
+    // This function can only be called after it is available
     if ((!on_writing) && (!write_buffer.empty())) {
         on_writing = true;
 
@@ -167,24 +158,28 @@ Client_B::Client_B(ev::default_loop *loop, Proxy_Peer *peer, int socket_id, Clie
     this->peer = peer;
     this->socket_id = socket_id;
     this->core = core;
+    this->on_writing = false;
 }
 
 Client_B::~Client_B() {
+    // Read
+    delete this->read_handler;
     if (read_meta != nullptr) {
         delete read_meta;
     }
-    if (write_pointer != nullptr) {
-        delete write_pointer;
-    }
-    delete this->read_handler;
-    delete this->write_handler;
 
+    // Write
+    delete this->write_handler;
     while (!write_buffer.empty()) {
         auto *buf = write_buffer.front();
         write_buffer.pop_front();
         delete buf;
     }
+    if (write_pointer != nullptr) {
+        delete write_pointer;
+    }
 
+    // Parent
     for (int i = 0; i < this->core->connection_b.size(); ++i) {
         if (this->core->connection_b[i] == this) {
             this->core->connection_b.erase(this->core->connection_b.begin() + i);
@@ -202,7 +197,9 @@ Client_B::~Client_B() {
 
 string Client_B::info() {
     stringstream ss;
-    ss << "Client_B -\t socket ID:" << socket_id << "\t\tW:" << write_buffer.size();
+    ss << "Client_B -\t socket ID:" << socket_id;
+    ss << "\t\t";
+    ss << "W:" << write_buffer.size();
     return ss.str();
 }
 
