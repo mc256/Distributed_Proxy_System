@@ -22,6 +22,28 @@ void Client_Core::load_config(){
     }
 }
 
+void Client_Core::start() {
+    // FACE A
+    interface_a = new Async_Accept(loop, listen_address, listen_port);
+    interface_a->accepted_event = [this](int d, sockaddr_storage r, socklen_t rl){
+        int id = connection_a_count ++;
+        auto * a = new Client_A(loop, d, id, this);
+        connection_a[id] = a;
+        a->start();
+    };
+
+    // FACE B
+    for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
+        p->interface = new Async_Connect(loop, p->address, p->port, DEFAULT_TIMEOUT);
+        p->interface->connected_event = [this, p](int d){
+            auto * b = new Client_B(loop, p, d, this);
+            connection_b.push_back(b);
+            b->start();
+        };
+        p->interface->failed_event = [this](){};
+        p->interface->start();
+    });
+}
 
 Client_Core::Client_Core(ev::default_loop *loop) {
     // Copy
@@ -29,29 +51,8 @@ Client_Core::Client_Core(ev::default_loop *loop) {
 
     // Initialize
     this->connection_a_count = 0;
-    this->connection_b_count = 0;
 
     // Load Configurations
     load_config();
-
-    // FACE A
-    this->interface_a = new Async_Accept(loop, this->listen_address, this->listen_port);
-    this->interface_a->accepted_event = [this](int descriptor, sockaddr_storage remote_address, socklen_t remote_address_length){
-        int id = this->connection_a_count ++;
-        this->connection_a[id] = new Client_A(this->loop, descriptor, id, this);
-    };
-
-    // FACE B
-    for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
-        p->interface = new Async_Connect(this->loop, p->address, p->port, DEFAULT_TIMEOUT);
-
-        // Connect
-        p->interface->connected_event = [this](int d){
-            int id = this->connection_b_count ++;
-            this->connection_b.push_back(new Client_B(this->loop, p, id, this));
-        };
-        p->interface->failed_event = [this](){};
-        p->interface->start();
-    });
 }
 

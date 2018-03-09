@@ -9,7 +9,7 @@
 
 class Client_B{
 private:
-    void generate_fake_request();
+    char * generate_fake_request();
 
 public:
     // Utility
@@ -17,29 +17,32 @@ public:
     ev::default_loop * loop;
 
     Proxy_Peer * peer;
-    int interface_id;
+    int socket_id;
 
     // Read
+    bool on_reading_data; // false = meta; true = data
+    Packet_Meta * read_meta = nullptr;
     Async_Read * read_handler;
 
     // Write
+    bool on_writing;
     Async_Write * write_handler;
+    deque<Packet *> write_buffer;
+    Packet * write_pointer = nullptr;
 
     /////////////////////////////////////
     // STEP 1
     void start();
 
     // STEP 2
-    void verify_peer();
+    void verify_peer(string s);
 
-    // STEP 3
-    void split_package();
-
-    // STEP 4
-    void shutdown();
+    // Features
+    void prepare_for_use();
+    void start_writer();
 
     // Constructor & Destructor
-    Client_B(ev::default_loop * loop, Proxy_Peer * peer, int interface_id, Client_Core * core);
+    Client_B(ev::default_loop * loop, Proxy_Peer * peer, int socket_id, Client_Core * core);
     ~Client_B();
 
     // Information

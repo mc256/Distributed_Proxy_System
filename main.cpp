@@ -12,13 +12,13 @@ int main(int argc, char **argv) {
 
     //EV listener
     Timeout_Listener timeout_l(&loop, 0, 2);
-    timeout_l.after_launch = [argc, argv, &loop] (Container * c){
+    timeout_l.after_launch = [argc, argv] (Container * c){
         if (argc > 1){
             string s(argv[1]);
             if (s == "client") {
                 c->mode = "client         ";
-
-
+                c->cc = new Client_Core(c->loop);
+                c->cc->start();
 
             }else if (s == "peer-server") {
                 c->mode = "peer           ";

@@ -11,6 +11,14 @@ class Packet {
 public:
     char * buffer;
     size_t length;
+    time_t timestamp;
+
+    void touch();
+    bool should_resend();
+    static Packet * generate_closed_signal(int id);
+    static Packet * generate_ack_signal(int id, size_t offset);
+    Packet * generate_meta_packet(size_t offset, size_t index, int id);
+    Packet * copy();
 
     Packet(char * buffer, size_t length);
     ~Packet();

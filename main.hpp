@@ -43,6 +43,7 @@
 #define DEBUG(a) if (true) {a}
 
 #define MAX_BUFFER_SIZE 2048
+#define FAKE_HEADER_SIZE 500
 #define RESEND_PERIOD 30
 #define DEFAULT_TIMEOUT 30
 
@@ -73,21 +74,15 @@ struct SOCKS_Request_Server{
     UCHAR bnd[1 + 255 + 2]; //use SOCKS_Address_
 };
 
-struct Data_Package{ // Data structure designed for transmission
-    int size;
-    int sent;
-    int dispatcher_id;
-    UCHAR buffer[MAX_BUFFER_SIZE];
-    time_t timestamp;
+
+struct Packet_Meta{
+    int dispatcher;
+    int signal;
+
+    size_t sequence;
+    size_t size;
 };
 
-
-struct Data_Meta{
-    UCHAR dispatcher_id[4]; //int
-    UCHAR user_id[4]; // int
-    UCHAR sequence_id[4]; // int
-    UCHAR size[4]; //int
-};
 
 
 
@@ -111,6 +106,9 @@ class Client_B;
 
 class Client_Core;
 
+class Channel;
+class Handshake;
+
 #include "utility/Container.hpp"
 #include "utility/Encryption.hpp"
 #include "utility/Packet.hpp"
@@ -127,7 +125,10 @@ class Client_Core;
 #include "interface/Client_A.hpp"
 #include "interface/Client_B.hpp"
 
-#include "program/Client_Core.hpp";
+#include "program/Client_Core.hpp"
+
+#include "socks5/Channel.hpp"
+#include "socks5/Handshake.hpp"
 
 
 #endif //PRPR_MAIN_H

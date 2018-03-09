@@ -22,6 +22,7 @@ Timeout_Listener::Timeout_Listener(ev::default_loop *loop, double after, double 
     this->after_launch = after_launch;
     this->repeat_event = repeat_event;
     this->c = new Container();
+    this->c->loop = loop;
 
     this->watcher.set(*loop);
     this->watcher.set(this);

@@ -11,6 +11,9 @@ class Container {
 public:
     string mode;
 
+    Client_Core * cc;
+    ev::default_loop * loop;
+
 
 
     Container();

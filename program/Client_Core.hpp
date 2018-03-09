@@ -21,7 +21,6 @@ public:
 
     // Face B
     vector<Proxy_Peer *> interface_b;
-    int connection_b_count;
     vector<Client_B *> connection_b;
     vector<Client_B *> connection_b_available;
 
@@ -29,6 +28,7 @@ public:
 
     // Configure
     void load_config();
+    void start();
 
     // Constructor
     explicit  Client_Core(ev::default_loop * loop);
