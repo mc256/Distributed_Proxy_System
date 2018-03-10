@@ -8,9 +8,9 @@
 #include "../main.hpp"
 
 class Client_Core{
-public:
+private:
     ev::default_loop * loop;
-
+public:
     // Face A
     Async_Accept * interface_a;
     int connection_a_count;

@@ -1,3 +1,4 @@
+0.0.0.0 9101 9105
 password
 confirmcode
-127.0.0.1 9123 password
+127.0.0.1 9123

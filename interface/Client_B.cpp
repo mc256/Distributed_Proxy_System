@@ -9,7 +9,7 @@ char *Client_B::generate_fake_request() {
     string fake_header = "GET / HTTP/1.1\r\nHost:errno104.com\r\nConnection: keep-alive\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: en-CA,en;q=0.9,zh;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,ja;q=0.5,fr;q=0.4\r\n";
 
     //Construct key
-    string key = Encryption::sha_hash(this->peer->password);
+    string key = Encryption::sha_hash(peer->password);
     string request = fake_header + key;
     request = request + string(FAKE_HEADER_SIZE - request.size(), ' ');
 
@@ -21,38 +21,38 @@ char *Client_B::generate_fake_request() {
 // STEP 1
 void Client_B::start() {
     // Read
-    this->read_handler = new Async_Read(this->loop, this->socket_id, new char[FAKE_HEADER_SIZE], FAKE_HEADER_SIZE);
-    this->read_handler->set_timeout(DEFAULT_TIMEOUT);
-    this->read_handler->read_event = [this](char *buf, ssize_t s) {
+    read_handler = new Async_Read(loop, socket_id, new char[FAKE_HEADER_SIZE], FAKE_HEADER_SIZE);
+    read_handler->set_timeout(DEFAULT_TIMEOUT);
+    read_handler->read_event = [this](char *buf, ssize_t s) {
         string header(buf);
         delete buf;
-        this->verify_peer(header);
+        verify_peer(header);
     };
-    this->read_handler->closed_event = this->read_handler->failed_event = [this](char *buf, ssize_t s) {
+    read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         delete this;
     };
 
     // Write
-    this->write_handler = new Async_Write(this->loop, socket_id, this->generate_fake_request(), FAKE_HEADER_SIZE);
-    this->write_handler->set_timeout(DEFAULT_TIMEOUT);
-    this->write_handler->wrote_event = [this](char *buf, ssize_t s) {
+    write_handler = new Async_Write(loop, socket_id, generate_fake_request(), FAKE_HEADER_SIZE);
+    write_handler->set_timeout(DEFAULT_TIMEOUT);
+    write_handler->wrote_event = [this](char *buf, ssize_t s) {
         delete buf;
-        this->read_handler->start();
+        read_handler->start();
     };
-    this->write_handler->closed_event = this->write_handler->failed_event = [this](char *buf, ssize_t s) {
+    write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         delete this;
     };
 
     // Start
-    this->write_handler->start();
+    write_handler->start();
 
 }
 
 // STEP 2
 void Client_B::verify_peer(string s) {
-    string key = Encryption::sha_hash(this->core->password_confirm);
+    string key = Encryption::sha_hash(core->password_confirm);
     size_t found = s.find(key);
     if (found == string::npos) {
         delete this;
@@ -85,6 +85,8 @@ void Client_B::prepare_for_use() {
             }
 
             // Prepare for the next packet
+            delete read_meta;
+            read_meta = nullptr;
             on_reading_data = false;
             read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
 
@@ -159,37 +161,33 @@ Client_B::Client_B(ev::default_loop *loop, Proxy_Peer *peer, int socket_id, Clie
     this->socket_id = socket_id;
     this->core = core;
     this->on_writing = false;
+    this->on_reading_data = false;
 }
 
 Client_B::~Client_B() {
     // Read
-    delete this->read_handler;
-    if (read_meta != nullptr) {
-        delete read_meta;
-    }
+    delete read_handler;
+    delete read_meta;
 
     // Write
-    delete this->write_handler;
+    delete write_handler;
     while (!write_buffer.empty()) {
         auto *buf = write_buffer.front();
         write_buffer.pop_front();
         delete buf;
     }
-    if (write_pointer != nullptr) {
-        delete write_pointer;
-    }
+    delete write_pointer;
 
     // Parent
-    for (int i = 0; i < this->core->connection_b.size(); ++i) {
-        if (this->core->connection_b[i] == this) {
-            this->core->connection_b.erase(this->core->connection_b.begin() + i);
+    for (int i = 0; i < core->connection_b.size(); ++i) {
+        if (core->connection_b[i] == this) {
+            core->connection_b.erase(core->connection_b.begin() + i);
             break;
         }
     }
-
-    for (int i = 0; i < this->core->connection_b_available.size(); ++i) {
-        if (this->core->connection_b_available[i] == this) {
-            this->core->connection_b_available.erase(this->core->connection_b_available.begin() + i);
+    for (int i = 0; i < core->connection_b_available.size(); ++i) {
+        if (core->connection_b_available[i] == this) {
+            core->connection_b_available.erase(core->connection_b_available.begin() + i);
             break;
         }
     }

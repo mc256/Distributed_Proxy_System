@@ -41,7 +41,10 @@ Packet * Packet::generate_meta_packet(size_t offset, size_t index, int id) {
 }
 
 Packet * Packet::copy() {
-    return new Packet(strdup(buffer), length);
+    // must be deep copy
+    char * copy = new char[this->length];
+    memcpy(copy, buffer, length);
+    return new Packet(copy, length);
 }
 
 Packet::Packet(char *buffer, size_t length) {

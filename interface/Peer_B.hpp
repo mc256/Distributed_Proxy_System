@@ -1,20 +1,20 @@
 //
-// Created by mc on 2/23/18.
+// Created by mc on 3/9/18.
 //
 
-#ifndef PRPR_CLIENT_A_HPP
-#define PRPR_CLIENT_A_HPP
+#ifndef PRPR_PEER_B_HPP
+#define PRPR_PEER_B_HPP
 
 #include "../main.hpp"
 
-class Client_A {
+class Peer_B {
 private:
     // Utility
-    Client_Core *core;
-    ev::default_loop *loop;
+    Peer_Core * core;
+    ev::default_loop * loop;
 
     // Method
-    void up_link_transmit();
+    void down_link_transmit();
     void send_signal(Packet *signal);
 
 public:
@@ -23,32 +23,30 @@ public:
     int interface_id;
 
     // Read
-    Async_Read *read_handler;
+    Async_Read * read_handler;
     size_t read_buffer_offset;
     deque<Packet *> read_buffer;
 
     // Write
-    Async_Write *write_handler;
-    Packet *write_pointer = nullptr;
+    Async_Write * write_handler;
+    Packet * write_pointer = nullptr;
     size_t sort_buffer_offset;
     map<int, Packet *> sort_buffer;
 
     // Method
     void start();
-
     void start_writer();
-
     void clear_read_buffer(size_t offset);
-
     void terminate();
 
-    // Constructor & Destructor
-    Client_A(ev::default_loop *loop, int socket_id, int interface_id, Client_Core *core);
 
-    ~Client_A();
+    // Constructor & Destructor
+    Peer_B(ev::default_loop * loop, int interface_id, Peer_Core * core);
+    ~Peer_B();
 
     // Information
     string info();
 };
 
-#endif //PRPR_CLIENT_A_HPP
+
+#endif //PRPR_PEER_B_HPP

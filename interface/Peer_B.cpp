@@ -1,60 +1,39 @@
 //
-// Created by mc on 2/23/18.
+// Created by mc on 3/9/18.
 //
 
-#include "Client_A.hpp"
+#include "Peer_B.hpp"
 
-void Client_A::up_link_transmit() {
-    // Select available interface B
-    size_t n = core->connection_b_available.size();
-    if (n == 0) {
-        return;
-    }
-    auto *b = core->connection_b_available[rand() % n];
-
-    // Generate send queue
-    for (size_t i = 0; i < read_buffer.size(); ++i) {
-        if (read_buffer[i]->should_resend()) {
-            read_buffer[i]->touch();
-            b->write_buffer.push_back(
-                    read_buffer[i]->generate_meta_packet(read_buffer_offset, i, interface_id)
-            );
-            b->write_buffer.push_back(read_buffer[i]->copy());
-        }
-    }
-    b->start_writer();
-}
-
-void Client_A::send_signal(Packet *signal) {
-    // Select available interface B
-    size_t n = core->connection_b_available.size();
-    if (n == 0) {
-        return;
-    }
-    auto *b = core->connection_b_available[rand() % n];
-    b->write_buffer.push_back(signal);
-    b->start_writer();
+void Peer_B::down_link_transmit() {
 
 }
 
-void Client_A::start() {
+void Peer_B::send_signal(Packet *signal) {
+
+}
+
+void Peer_B::start() {
+    if (socket_id <= 0){
+        return;
+    }
+
     // Read
     read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_undefined_length(true);
     read_handler->read_event = [this](char *buf, size_t s) {
         read_buffer.push_back(new Packet(buf, s));
-        up_link_transmit();
+        down_link_transmit();
 
         read_handler->reset(new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
         read_handler->start();
     };
     read_handler->failed_event = read_handler->closed_event = [this](char *buf, size_t s) {
         delete buf;
-        up_link_transmit();
+        down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
     };
 
-    //Write
+    // Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->wrote_event = [this](char *buf, size_t s) {
         delete write_pointer;
@@ -63,15 +42,20 @@ void Client_A::start() {
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, size_t s) {
         delete write_pointer;
-        up_link_transmit();
+        down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
     };
 
-    //Start
+    // Start
     read_handler->start();
+
 }
 
-void Client_A::start_writer() {
+void Peer_B::start_writer() {
+    if (socket_id <= 0){
+        // Connection is not ready yet
+        return;
+    }
     if (write_pointer != nullptr){
         // The Async Write is writing
         return;
@@ -96,7 +80,7 @@ void Client_A::start_writer() {
     write_handler->start();
 }
 
-void Client_A::clear_read_buffer(size_t offset) {
+void Peer_B::clear_read_buffer(size_t offset) {
     // up to and include the position offset
     while (read_buffer_offset <= offset) {
         read_buffer_offset++;
@@ -105,16 +89,16 @@ void Client_A::clear_read_buffer(size_t offset) {
     }
 }
 
-void Client_A::terminate() {
+void Peer_B::terminate() {
     close(socket_id);
     delete this;
 }
 
-Client_A::Client_A(ev::default_loop *loop, int socket_id, int interface_id, Client_Core *core) {
+Peer_B::Peer_B(ev::default_loop *loop, int interface_id, Peer_Core *core) {
     // Copy Values
     this->loop = loop;
     this->core = core;
-    this->socket_id = socket_id;
+    this->socket_id = 0;
     this->interface_id = interface_id;
 
     // Initialize
@@ -122,7 +106,7 @@ Client_A::Client_A(ev::default_loop *loop, int socket_id, int interface_id, Clie
     sort_buffer_offset = 0;
 }
 
-Client_A::~Client_A() {
+Peer_B::~Peer_B() {
     // Read
     delete read_handler;
     while (!read_buffer.empty()) {
@@ -136,13 +120,14 @@ Client_A::~Client_A() {
         delete kv.second;
     }
 
-    // Parents
-    core->connection_a.erase(interface_id);
+    // Parent
+    core->connection_b.erase(interface_id);
+
 }
 
-string Client_A::info() {
+string Peer_B::info() {
     stringstream ss;
-    ss << "Client_A -\t socket ID:" << socket_id;
+    ss << "Peer_B   -\t socket ID:" << socket_id;
     ss << "\t\t";
     ss << "R:" << read_buffer.size();
     ss << " ";

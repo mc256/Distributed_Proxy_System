@@ -104,7 +104,11 @@ class Async_Write;
 class Client_A;
 class Client_B;
 
+class Peer_A;
+class Peer_B;
+
 class Client_Core;
+class Peer_Core;
 class Socks_Core;
 
 class Channel;
@@ -126,7 +130,11 @@ class Handshake;
 #include "interface/Client_A.hpp"
 #include "interface/Client_B.hpp"
 
+#include "interface/Peer_A.hpp"
+#include "interface/Peer_B.hpp"
+
 #include "program/Client_Core.hpp"
+#include "program/Peer_Core.hpp"
 #include "program/Socks_Core.hpp"
 
 #include "socks5/Channel.hpp"

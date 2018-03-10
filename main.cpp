@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
 
             } else if (s == "peer-server") {
                 c->mode = "peer           ";
-
+                c->pc = new Peer_Core(c->loop);
+                c->pc->start();
 
             } else if (s == "server-socks5") {
                 c->mode = "server-socks5  ";
@@ -51,6 +52,21 @@ int main(int argc, char **argv) {
             for (const auto &v : c->cc->connection_b_available) {
                 cout << v->info() << endl;
             }
+        }
+        if (c->pc != nullptr) {
+            cout << "Peer A:" << endl;
+            for (const auto &v : c->pc->connection_a) {
+                cout << v->info() << endl;
+            }
+            cout << "Peer A available:" << endl;
+            for (const auto &v : c->pc->connection_a_available) {
+                cout << v->info() << endl;
+            }
+            cout << "Peer B:" << endl;
+            for (const auto &kv : c->pc->connection_b) {
+                cout << kv.first << "\t" << kv.second->info();
+            }
+
         }
     };
 

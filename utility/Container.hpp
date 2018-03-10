@@ -12,7 +12,10 @@ public:
     string mode;
 
     Client_Core * cc;
+    Peer_Core * pc;
     Socks_Core * sc;
+
+
     ev::default_loop * loop;
 
 
