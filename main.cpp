@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
         if (c->cc != nullptr) {
             cout << "Client A:" << endl;
             for (const auto &kv : c->cc->connection_a) {
-                cout << kv.first << "\t" << kv.second->info();
+                cout << kv.first << "\t" << kv.second->info() << endl;
             }
             cout << "Client B:" << endl;
             for (const auto &v : c->cc->connection_b) {
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
             }
             cout << "Peer B:" << endl;
             for (const auto &kv : c->pc->connection_b) {
-                cout << kv.first << "\t" << kv.second->info();
+                cout << kv.first << "\t" << kv.second->info() << endl;
             }
 
         }

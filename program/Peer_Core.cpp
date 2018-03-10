@@ -6,7 +6,7 @@
 
 void Peer_Core::load_config() {
     ifstream setting_file;
-    setting_file.open("client_settings.txt");
+    setting_file.open("peer_settings.txt");
     if (setting_file.good()) {
         setting_file >> listen_address >> listen_port_begin >> listen_port_end;
         setting_file >> password >> confirm_password;
@@ -26,6 +26,7 @@ void Peer_Core::start() {
             connection_a.push_back(a);
             a->start();
         };
+        interface->start();
     }
 
     // FACE B

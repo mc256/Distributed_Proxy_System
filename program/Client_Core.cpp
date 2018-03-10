@@ -31,6 +31,7 @@ void Client_Core::start() {
         connection_a[id] = a;
         a->start();
     };
+    interface_a->start();
 
     // FACE B
     for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
