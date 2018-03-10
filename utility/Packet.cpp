@@ -9,6 +9,7 @@ void Packet::touch() {
 }
 
 bool Packet::should_resend() {
+    //cout << this->timestamp << endl << (time(NULL) - RESEND_PERIOD) << endl;
     return (this->timestamp < (time(NULL) - RESEND_PERIOD));
 }
 

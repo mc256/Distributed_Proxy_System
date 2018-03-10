@@ -90,7 +90,7 @@ void Peer_A::prepare_for_use() {
     read_handler->set_timeout(0);
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
-
+        DEBUG(cout << "Peer_A "<< this->socket_id <<"\tRead ->" << s << "bytes" << endl;)
         if (on_reading_data){
             // Current Packet is a DATA packet
             auto * connection = core->connection_b[read_meta->dispatcher];

@@ -5,11 +5,37 @@
 #include "Peer_B.hpp"
 
 void Peer_B::down_link_transmit() {
+    // Select available interface A
+    size_t n = core->connection_a_available.size();
+    if (n == 0){
+        return;
+    }
+    auto * a = core->connection_a_available[rand() % n];
 
+    // Generate send queue
+    for (size_t i = 0; i < read_buffer.size(); ++i){
+        if (read_buffer[i]->should_resend()){
+            read_buffer[i]->touch();
+            a->write_buffer.push_back(
+                    read_buffer[i]->generate_meta_packet(read_buffer_offset, i, interface_id)
+            );
+            a->write_buffer.push_back(read_buffer[i]->copy());
+        }
+    }
+    a->start_writer();
 }
 
 void Peer_B::send_signal(Packet *signal) {
+    // Select available interface A
+    size_t n = core->connection_a_available.size();
+    if (n == 0){
+        return;
+    }
+    auto * a = core->connection_a_available[rand() % n];
 
+    // Send signal
+    a->write_buffer.push_back(signal);
+    a->start_writer();
 }
 
 void Peer_B::start() {
@@ -36,6 +62,7 @@ void Peer_B::start() {
     // Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->wrote_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "Peer_B "<< this->socket_id <<"\tSend ->" << s << "bytes" << endl;)
         delete write_pointer;
         write_pointer = nullptr;
         start_writer();
@@ -90,6 +117,10 @@ void Peer_B::clear_read_buffer(size_t offset) {
 }
 
 void Peer_B::terminate() {
+    flag_terminated = true;
+    if (socket_id <= 0){
+        return;
+    }
     close(socket_id);
     delete this;
 }
@@ -104,6 +135,7 @@ Peer_B::Peer_B(ev::default_loop *loop, int interface_id, Peer_Core *core) {
     // Initialize
     read_buffer_offset = 0;
     sort_buffer_offset = 0;
+    flag_terminated = false;
 }
 
 Peer_B::~Peer_B() {

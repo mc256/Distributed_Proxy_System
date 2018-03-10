@@ -44,7 +44,7 @@
 
 #define MAX_BUFFER_SIZE 2048
 #define FAKE_HEADER_SIZE 600
-#define RESEND_PERIOD 30
+#define RESEND_PERIOD 300
 #define DEFAULT_TIMEOUT 30
 
 struct SOCKS_Version_Client{

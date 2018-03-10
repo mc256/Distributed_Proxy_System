@@ -125,6 +125,7 @@ void Client_B::prepare_for_use() {
     // Writing Configuration
     write_handler->set_timeout(0);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "Client B "<< this->socket_id <<"\tSent ->" << s << "bytes" << endl;)
         delete write_pointer;
         write_pointer = nullptr;
 

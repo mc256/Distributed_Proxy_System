@@ -21,6 +21,7 @@ public:
     // Utility
     int socket_id;
     int interface_id;
+    bool flag_terminated;
 
     // Read
     Async_Read * read_handler;
