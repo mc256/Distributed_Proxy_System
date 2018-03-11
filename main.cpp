@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
         }
     };
     timeout_l.repeat_event = [](Container *c, int i) {
-        cout << c->mode << "---------------------->" << i << endl;
+        //cout << c->mode << "---------------------->" << i << endl;
         /*
         if (c->cc != nullptr) {
             cout << "Client A:" << endl;

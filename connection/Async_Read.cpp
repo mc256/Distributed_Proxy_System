@@ -46,10 +46,15 @@ void Async_Read::set_timeout(int i) {
 }
 
 void Async_Read::start() {
+    this->position = 0;
     if (timeout != 0){
         this->timeout_watcher.start(timeout, timeout);
     }
     this->read_io_watcher.start();
+}
+
+void Async_Read::reset(){
+    this->position = 0;
 }
 
 void Async_Read::reset(char *buffer, ssize_t length){

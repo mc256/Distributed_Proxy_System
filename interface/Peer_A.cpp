@@ -90,7 +90,7 @@ void Peer_A::prepare_for_use() {
     read_handler->set_timeout(0);
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "Peer_A "<< this->socket_id <<"\tRead ->" << s << "bytes" << endl;)
+        DEBUG(cout << "["<< socket_id << "]\t"<<"|==> " << s << endl;)
         if (on_reading_data){
             // Current Packet is a DATA packet
             auto * connection = core->connection_b[read_meta->dispatcher];
@@ -131,22 +131,28 @@ void Peer_A::prepare_for_use() {
                 if (connection != nullptr){
                     connection->terminate();
                 }
+                read_handler->reset();
             } else if (read_meta->signal == 1){
                 //ACK
                 auto * connection = core->connection_b[read_meta->dispatcher];
                 if (connection != nullptr){
                     connection->clear_read_buffer(read_meta->sequence);
                 }
+                read_handler->reset();
             }
         }
         read_handler->start();
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"|==x " << s << endl;)
+        //close(socket_id);
         delete this;
     };
 
     // Write
-    write_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
+    write_handler->set_timeout(0);
+    write_handler->wrote_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"|<== " << s << endl;)
         delete write_pointer;
         write_pointer = nullptr;
 
@@ -154,6 +160,8 @@ void Peer_A::prepare_for_use() {
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"|x== " << s << endl;)
+        //close(socket_id);
         delete this;
     };
 

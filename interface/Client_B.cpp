@@ -69,7 +69,7 @@ void Client_B::prepare_for_use() {
     read_handler->set_timeout(0);
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
-
+        DEBUG(cout << "["<< socket_id << "]\t"<<"<==| " << s << endl;)
         if (on_reading_data) {
             // Current Packet is DATA Packet
             auto *connection = core->connection_a[read_meta->dispatcher];
@@ -105,6 +105,7 @@ void Client_B::prepare_for_use() {
                 if (connection != nullptr) {
                     connection->terminate();
                 }
+                read_handler->reset();
 
             } else if (read_meta->signal == 2) {
                 // ACK
@@ -112,12 +113,13 @@ void Client_B::prepare_for_use() {
                 if (connection != nullptr) {
                     connection->clear_read_buffer(read_meta->sequence);
                 }
-                read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
+                read_handler->reset();
             }
         }
         read_handler->start();
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"<==x " << s << endl;)
         delete this;
     };
 
@@ -125,7 +127,10 @@ void Client_B::prepare_for_use() {
     // Writing Configuration
     write_handler->set_timeout(0);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "Client B "<< this->socket_id <<"\tSent ->" << s << "bytes" << endl;)
+        DEBUG(cout << "["<< socket_id << "]\t"<<"==>| " << s << endl;)
+        if (s == 3){
+            DEBUG(cout << "debug" << endl;)
+        }
         delete write_pointer;
         write_pointer = nullptr;
 
@@ -133,6 +138,7 @@ void Client_B::prepare_for_use() {
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"==>x " << s << endl;)
         delete this;
     };
 

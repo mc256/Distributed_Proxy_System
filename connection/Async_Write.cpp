@@ -45,6 +45,10 @@ void Async_Write::start() {
 }
 
 
+void Async_Write::reset(){
+    this->position = 0;
+}
+
 void Async_Write::reset(char *buffer, ssize_t length){
     this->buffer = buffer;
     this->length = length;

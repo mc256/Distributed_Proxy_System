@@ -31,6 +31,7 @@ public:
 
     void set_timeout(int i);
     void start();
+    void reset();
     void reset(char * buffer, ssize_t length);
 
     Async_Write(ev::default_loop *loop, int descriptor);

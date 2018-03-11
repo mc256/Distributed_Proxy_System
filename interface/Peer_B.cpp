@@ -47,6 +47,7 @@ void Peer_B::start() {
     read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_undefined_length(true);
     read_handler->read_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"<==| " << s << endl;)
         read_buffer.push_back(new Packet(buf, s));
         down_link_transmit();
 
@@ -54,6 +55,8 @@ void Peer_B::start() {
         read_handler->start();
     };
     read_handler->failed_event = read_handler->closed_event = [this](char *buf, size_t s) {
+
+        DEBUG(cout << "["<< socket_id << "]\t"<<"x==| " << s << endl;)
         delete buf;
         down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
@@ -62,12 +65,13 @@ void Peer_B::start() {
     // Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->wrote_event = [this](char *buf, size_t s) {
-        DEBUG(cout << "Peer_B "<< this->socket_id <<"\tSend ->" << s << "bytes" << endl;)
+        DEBUG(cout << "["<< socket_id << "]\t"<<"==>| " << s << endl;)
         delete write_pointer;
         write_pointer = nullptr;
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<<"==>x " << s << endl;)
         delete write_pointer;
         down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));

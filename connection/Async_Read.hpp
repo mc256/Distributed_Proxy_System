@@ -34,6 +34,7 @@ public:
     void set_undefined_length(bool b);
 
     void start();
+    void reset();
     void reset(char *buffer, ssize_t length);
 
     Async_Read(ev::default_loop *loop, int descriptor);

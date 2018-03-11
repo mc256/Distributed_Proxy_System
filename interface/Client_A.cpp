@@ -42,6 +42,7 @@ void Client_A::start() {
     read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_undefined_length(true);
     read_handler->read_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<< "|==> " << s << endl;)
         read_buffer.push_back(new Packet(buf, s));
         up_link_transmit();
 
@@ -49,6 +50,7 @@ void Client_A::start() {
         read_handler->start();
     };
     read_handler->failed_event = read_handler->closed_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<< "|==x " << s << endl;)
         delete buf;
         up_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
@@ -57,11 +59,13 @@ void Client_A::start() {
     //Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->wrote_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<< "|<== " << s << endl;)
         delete write_pointer;
         write_pointer = nullptr;
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, size_t s) {
+        DEBUG(cout << "["<< socket_id << "]\t"<< "|x== " << s << endl;)
         delete write_pointer;
         up_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
