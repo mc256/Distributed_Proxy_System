@@ -132,7 +132,7 @@ void Peer_A::prepare_for_use() {
                     connection->terminate();
                 }
                 read_handler->reset();
-            } else if (read_meta->signal == 1){
+            } else if (read_meta->signal == 2){
                 //ACK
                 auto * connection = core->connection_b[read_meta->dispatcher];
                 if (connection != nullptr){
@@ -145,7 +145,7 @@ void Peer_A::prepare_for_use() {
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "["<< socket_id << "]\t"<<"|==x " << s << endl;)
-        //close(socket_id);
+        close(socket_id);
         delete this;
     };
 
@@ -161,7 +161,7 @@ void Peer_A::prepare_for_use() {
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "["<< socket_id << "]\t"<<"|x== " << s << endl;)
-        //close(socket_id);
+        close(socket_id);
         delete this;
     };
 

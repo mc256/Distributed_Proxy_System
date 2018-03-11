@@ -49,8 +49,8 @@ Peer_B *Peer_Core::connect_socks_server(int dispatcher) {
             delete b;
         }
     };
-    connection->failed_event = []() {
-        // We assume the socks server is always working.
+    connection->failed_event = [this, b]() {
+        delete b;
     };
     connection->start();
 

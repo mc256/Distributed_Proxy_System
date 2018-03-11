@@ -60,6 +60,8 @@ void Peer_B::start() {
         delete buf;
         down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
+        close(socket_id);
+        delete this;
     };
 
     // Write
@@ -75,6 +77,8 @@ void Peer_B::start() {
         delete write_pointer;
         down_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
+        close(socket_id);
+        delete this;
     };
 
     // Start
@@ -101,7 +105,7 @@ void Peer_B::start_writer() {
     sort_buffer.erase((int)sort_buffer_offset);
 
     // Send ACK. We may not need to send ACK all the time TODO
-    send_signal(Packet::generate_ack_signal(interface_id, sort_buffer_offset));
+    if (Encryption::chance(ACK_CHANCE)) send_signal(Packet::generate_ack_signal(interface_id, sort_buffer_offset));
 
     // Move to next position
     sort_buffer_offset ++;
@@ -162,11 +166,21 @@ Peer_B::~Peer_B() {
 }
 
 string Peer_B::info() {
+
     stringstream ss;
-    ss << "Peer_B   -\t socket ID:" << socket_id;
-    ss << "\t\t";
-    ss << "R:" << read_buffer.size();
-    ss << " ";
-    ss << "W:" << sort_buffer.size() << "(" << sort_buffer_offset << ")";
+    if (flag_terminated){
+        ss << "Peer_B   -\t Closed";
+        ss << "\t\t";
+        ss << "R:" << read_buffer.size();
+        ss << " ";
+        ss << "W:" << sort_buffer.size() << "(" << sort_buffer_offset << ")";
+    }else{
+        ss << "Peer_B   -\t socket ID:" << socket_id;
+        ss << "\t\t";
+        ss << "R:" << read_buffer.size();
+        ss << " ";
+        ss << "W:" << sort_buffer.size() << "(" << sort_buffer_offset << ")";
+
+    }
     return ss.str();
 }

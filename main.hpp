@@ -40,11 +40,12 @@
 #define UCHAR unsigned char
 #define CHECK(a, b, c, d)  if ( (a) b ){ cout << c << endl; return d;}
 #define CHECK_DO(a, b, c, d)  if ( (a) b ){ cout << c << endl; d;}
-#define DEBUG(a) if (true) {a}
+#define DEBUG(a) if (false) {a}
 
 #define MAX_BUFFER_SIZE 2048
 #define FAKE_HEADER_SIZE 600
-#define RESEND_PERIOD 300
+#define RESEND_PERIOD 5
+#define ACK_CHANCE 50
 #define DEFAULT_TIMEOUT 30
 
 struct SOCKS_Version_Client{

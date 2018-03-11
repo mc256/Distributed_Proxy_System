@@ -17,3 +17,7 @@ string Encryption::sha_hash(string input) {
     }
     return hash_hex.str();
 }
+
+bool Encryption::chance(int p) {
+    return ((rand() % 100) <= p);
+}

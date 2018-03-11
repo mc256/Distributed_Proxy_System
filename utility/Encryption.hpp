@@ -11,6 +11,7 @@ class Encryption {
 
 public:
     static string sha_hash(string input);
+    static bool chance(int p);
 };
 
 

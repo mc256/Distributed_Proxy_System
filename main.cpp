@@ -38,11 +38,11 @@ int main(int argc, char **argv) {
         }
     };
     timeout_l.repeat_event = [](Container *c, int i) {
-        //cout << c->mode << "---------------------->" << i << endl;
-        /*
+        cout << c->mode << "---------------------->" << i << endl;
         if (c->cc != nullptr) {
             cout << "Client A:" << endl;
             for (const auto &kv : c->cc->connection_a) {
+                if (kv.second == nullptr)continue;
                 cout << kv.first << "\t" << kv.second->info() << endl;
             }
             cout << "Client B:" << endl;
@@ -65,11 +65,11 @@ int main(int argc, char **argv) {
             }
             cout << "Peer B:" << endl;
             for (const auto &kv : c->pc->connection_b) {
+                if (kv.second == nullptr)continue;
                 cout << kv.first << "\t" << kv.second->info() << endl;
             }
 
         }
-        */
     };
 
     Command_Listener command_l(&loop);

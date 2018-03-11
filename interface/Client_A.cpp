@@ -54,6 +54,8 @@ void Client_A::start() {
         delete buf;
         up_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
+        close(socket_id);
+        delete this;
     };
 
     //Write
@@ -69,6 +71,8 @@ void Client_A::start() {
         delete write_pointer;
         up_link_transmit();
         send_signal(Packet::generate_closed_signal(interface_id));
+        close(socket_id);
+        delete this;
     };
 
     //Start
@@ -90,7 +94,7 @@ void Client_A::start_writer() {
     sort_buffer.erase((int)sort_buffer_offset);
 
     // Send ACK. We may not need to send ACK all the time TODO
-    send_signal(Packet::generate_ack_signal(interface_id, sort_buffer_offset));
+    if (Encryption::chance(ACK_CHANCE)) send_signal(Packet::generate_ack_signal(interface_id, sort_buffer_offset));
 
     // Move to next position
     sort_buffer_offset ++;

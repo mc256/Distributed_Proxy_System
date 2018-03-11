@@ -120,6 +120,7 @@ void Client_B::prepare_for_use() {
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "["<< socket_id << "]\t"<<"<==x " << s << endl;)
+        close(socket_id);
         delete this;
     };
 
@@ -139,6 +140,7 @@ void Client_B::prepare_for_use() {
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "["<< socket_id << "]\t"<<"==>x " << s << endl;)
+        close(socket_id);
         delete this;
     };
 
