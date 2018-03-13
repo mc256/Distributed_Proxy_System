@@ -61,13 +61,15 @@ void Peer_A::start() {
         delete buf;
         verify_client(header);
     };
-    read_handler->recv_event = [this](char *buf, ssize_t s) {
+    read_handler->recv_event = [this](char *buf, ssize_t s)->bool {
         if (s > 100 && buf[s - 1] == '\n' && buf[s] == '\0'){
             string header(buf);
             delete buf;
             read_handler->stop_watchers();
             verify_client(header);
+            return true;
         }
+        return false;
     };
 
     // Write
