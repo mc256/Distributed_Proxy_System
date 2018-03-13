@@ -17,7 +17,10 @@ void Async_Read::read_callback(ev::io &w, int r) {
     }
     if (s > 0) {
         this->position += s;
-        if (this->recv_event != nullptr) this->recv_event(this->buffer, this->position);
+        if (this->recv_event != nullptr){
+            this->recv_event(this->buffer, this->position);
+            return;
+        }
         if (this->position == this->length) {
             this->stop_watchers();
             this->read_event(this->buffer, this->position);

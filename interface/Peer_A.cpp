@@ -5,7 +5,7 @@
 #include "Peer_A.hpp"
 
 
-string Peer_A::generate_regular_response(string request) {
+tuple<char *, size_t > Peer_A::generate_regular_response(string request) {
     // For the request does not pass the verification
     // They will receive a normal web page
     stringstream read_stream;
@@ -14,21 +14,30 @@ string Peer_A::generate_regular_response(string request) {
     string method, uri, protocol;
     read_stream >> method >> uri >> protocol;
 
+    char * buffer;
+    size_t buffer_size;
+
     stringstream response;
     if (protocol == "HTTP/1.1" && method == "GET") {
         response
                 << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Hello World!</title></head><body><center><h1>It works!</h1></center></body></html>\r\n\r\n";
+        buffer = strdup(response.str().c_str());
+        buffer_size = response.str().length();
     } else {
         // Bad Request
         response
                 << "HTTP/1.1 400 Bad Request\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Bad Request</title></head><body><center><h1>Bad Request</h1></center></body></html>\r\n\r\n";
+        buffer = strdup(response.str().c_str());
+        buffer_size = response.str().length();
     }
 
-    return response.str();
+    return tuple<char *, size_t >(buffer, buffer_size);
 }
 
-string Peer_A::generate_fake_response(string request) {
+tuple<char *, size_t > Peer_A::generate_fake_response(string request) {
     // Send confirm code and process to next step
+    char * buffer;
+    size_t buffer_size;
 
     stringstream response;
     response
@@ -38,7 +47,9 @@ string Peer_A::generate_fake_response(string request) {
     size_t padding = FAKE_HEADER_SIZE - response.str().length();
     response << string(padding, ' ');
 
-    return response.str();
+    buffer = strdup(response.str().c_str());
+    buffer_size = response.str().length();
+    return tuple<char *, size_t >(buffer, buffer_size);
 }
 
 void Peer_A::start() {
@@ -48,14 +59,13 @@ void Peer_A::start() {
     read_handler->read_event = read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
         string header(buf);
         delete buf;
-        read_handler->recv_event = nullptr;
         verify_client(header);
     };
     read_handler->recv_event = [this](char *buf, ssize_t s) {
         if (s > 100 && buf[s - 1] == '\n' && buf[s] == '\0'){
             string header(buf);
             delete buf;
-            read_handler->recv_event = nullptr;
+            read_handler->stop_watchers();
             verify_client(header);
         }
     };
@@ -77,8 +87,9 @@ void Peer_A::verify_client(string s) {
     auto found = s.find(key);
     if (found == string::npos) {
         // Fail the verification
-        string response = generate_regular_response(s);
-        write_handler->reset(strdup(response.c_str()), response.length());
+        char * response; size_t response_size;
+        tie(response, response_size) = generate_regular_response(s);
+        write_handler->reset(response, response_size);
         write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
             delete buf;
             close(socket_id);
@@ -88,8 +99,9 @@ void Peer_A::verify_client(string s) {
 
     } else {
         // Pass the verification
-        string response = generate_fake_response(s);
-        write_handler->reset(strdup(response.c_str()), FAKE_HEADER_SIZE);
+        char * response; size_t response_size;
+        tie(response, response_size) = generate_fake_response(s);
+        write_handler->reset(response, FAKE_HEADER_SIZE);
         write_handler->wrote_event = [this](char *buf, ssize_t s) {
             delete buf;
             prepare_for_use();

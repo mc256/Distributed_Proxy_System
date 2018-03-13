@@ -17,6 +17,7 @@
 #include <list>
 #include <functional>
 #include <algorithm>
+#include <tuple>
 
 
 #include <sys/socket.h> //socket
@@ -46,7 +47,7 @@
 #define FAKE_HEADER_SIZE 600
 #define READ_BUFFER_SIZE 100
 #define LOWEST_CONNECTION 8
-#define RESEND_PERIOD 5
+#define RESEND_PERIOD 3
 #define ACK_CHANCE 50
 #define DEFAULT_TIMEOUT 30
 

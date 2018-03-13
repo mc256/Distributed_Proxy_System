@@ -13,8 +13,8 @@ private:
     Peer_Core * core;
     ev::default_loop *loop;
 
-    string generate_regular_response(string request);
-    string generate_fake_response(string request);
+    tuple<char *, size_t > generate_regular_response(string request);
+    tuple<char *, size_t > generate_fake_response(string request);
 
 public:
     // Utility

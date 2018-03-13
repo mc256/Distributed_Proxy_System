@@ -20,8 +20,9 @@ private:
     ev::io write_io_watcher;
     ev::timer timeout_watcher;
 
-    void stop_watchers();
 public:
+    void stop_watchers();
+
     void write_callback(ev::io &w, int r);
     void timeout_callback(ev::timer &w, int r);
 
