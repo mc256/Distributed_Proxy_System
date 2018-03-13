@@ -5,7 +5,7 @@
 #include "Peer_A.hpp"
 
 
-tuple<char *, size_t > Peer_A::generate_regular_response(string request) {
+tuple<char *, size_t> Peer_A::generate_regular_response(string request) {
     // For the request does not pass the verification
     // They will receive a normal web page
     stringstream read_stream;
@@ -14,7 +14,7 @@ tuple<char *, size_t > Peer_A::generate_regular_response(string request) {
     string method, uri, protocol;
     read_stream >> method >> uri >> protocol;
 
-    char * buffer;
+    char *buffer;
     size_t buffer_size;
 
     stringstream response;
@@ -31,12 +31,12 @@ tuple<char *, size_t > Peer_A::generate_regular_response(string request) {
         buffer_size = response.str().length();
     }
 
-    return tuple<char *, size_t >(buffer, buffer_size);
+    return tuple<char *, size_t>(buffer, buffer_size);
 }
 
-tuple<char *, size_t > Peer_A::generate_fake_response(string request) {
+tuple<char *, size_t> Peer_A::generate_fake_response(string request) {
     // Send confirm code and process to next step
-    char * buffer;
+    char *buffer;
     size_t buffer_size;
 
     stringstream response;
@@ -49,7 +49,7 @@ tuple<char *, size_t > Peer_A::generate_fake_response(string request) {
 
     buffer = strdup(response.str().c_str());
     buffer_size = response.str().length();
-    return tuple<char *, size_t >(buffer, buffer_size);
+    return tuple<char *, size_t>(buffer, buffer_size);
 }
 
 void Peer_A::start() {
@@ -61,8 +61,8 @@ void Peer_A::start() {
         delete buf;
         verify_client(header);
     };
-    read_handler->recv_event = [this](char *buf, ssize_t s)->bool {
-        if (s > 100 && buf[s - 1] == '\n' && buf[s] == '\0'){
+    read_handler->recv_event = [this](char *buf, ssize_t s) -> bool {
+        if (s > 100 && buf[s - 4] == '\r' && buf[s - 3] == '\n' && buf[s - 2] == '\r' && buf[s - 1] == '\n') {
             string header(buf);
             delete buf;
             read_handler->stop_watchers();
@@ -75,7 +75,8 @@ void Peer_A::start() {
     // Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->set_timeout(DEFAULT_TIMEOUT);
-    write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+    write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf,
+                                                                                                    ssize_t s) {
         delete buf;
         delete this;
     };
@@ -89,10 +90,12 @@ void Peer_A::verify_client(string s) {
     auto found = s.find(key);
     if (found == string::npos) {
         // Fail the verification
-        char * response; size_t response_size;
+        char *response;
+        size_t response_size;
         tie(response, response_size) = generate_regular_response(s);
         write_handler->reset(response, response_size);
-        write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+        write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf,
+                                                                                                        ssize_t s) {
             delete buf;
             close(socket_id);
             delete this;
@@ -101,7 +104,8 @@ void Peer_A::verify_client(string s) {
 
     } else {
         // Pass the verification
-        char * response; size_t response_size;
+        char *response;
+        size_t response_size;
         tie(response, response_size) = generate_fake_response(s);
         write_handler->reset(response, FAKE_HEADER_SIZE);
         write_handler->wrote_event = [this](char *buf, ssize_t s) {
@@ -118,23 +122,23 @@ void Peer_A::prepare_for_use() {
     read_handler->set_timeout(0);
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"|==> " << s << endl;)
-        if (on_reading_data){
+        DEBUG(cout << "[" << socket_id << "]\t" << "|==> " << s << endl;)
+        if (on_reading_data) {
             // Current Packet is a DATA packet
-            auto * connection = core->connection_b[read_meta->dispatcher];
-            if (connection == nullptr){
-                if (read_meta->sequence == 0){
+            auto *connection = core->connection_b[read_meta->dispatcher];
+            if (connection == nullptr) {
+                if (read_meta->sequence == 0) {
                     // If sequence number is ZERO, then create a new connection
                     connection = core->connect_socks_server(read_meta->dispatcher);
                     connection->sort_buffer[read_meta->sequence] = new Packet(buf, (size_t) s);
                     connection->start_writer();
-                }else{
+                } else {
                     // The connection is closed
                     write_buffer.push_back(Packet::generate_closed_signal(read_meta->dispatcher));
                     start_writer();
                     delete buf;
                 }
-            }else{
+            } else {
                 // If the connection is open, inform the interface B
                 connection->sort_buffer[read_meta->sequence] = new Packet(buf, (size_t) s);
                 connection->start_writer();
@@ -149,21 +153,21 @@ void Peer_A::prepare_for_use() {
         } else {
             // Current Packet is a META packet
             read_meta = (Packet_Meta *) buf;
-            if (read_meta->signal == 0){
+            if (read_meta->signal == 0) {
                 // Normal data
                 on_reading_data = true;
                 read_handler->reset(new char[read_meta->size], read_meta->size);
-            } else if (read_meta->signal == 1){
+            } else if (read_meta->signal == 1) {
                 // Close connection
-                auto * connection = core->connection_b[read_meta->dispatcher];
-                if (connection != nullptr){
+                auto *connection = core->connection_b[read_meta->dispatcher];
+                if (connection != nullptr) {
                     connection->terminate();
                 }
                 read_handler->reset();
-            } else if (read_meta->signal == 2){
+            } else if (read_meta->signal == 2) {
                 //ACK
-                auto * connection = core->connection_b[read_meta->dispatcher];
-                if (connection != nullptr){
+                auto *connection = core->connection_b[read_meta->dispatcher];
+                if (connection != nullptr) {
                     connection->clear_read_buffer(read_meta->sequence);
                 }
                 read_handler->reset();
@@ -172,7 +176,7 @@ void Peer_A::prepare_for_use() {
         read_handler->start();
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"|==x " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "|==x " << s << endl;)
         close(socket_id);
         delete this;
     };
@@ -180,7 +184,7 @@ void Peer_A::prepare_for_use() {
     // Write
     write_handler->set_timeout(0);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"|<== " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "|<== " << s << endl;)
         delete write_pointer;
         write_pointer = nullptr;
 
@@ -188,7 +192,7 @@ void Peer_A::prepare_for_use() {
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"|x== " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "|x== " << s << endl;)
         close(socket_id);
         delete this;
     };
@@ -199,7 +203,7 @@ void Peer_A::prepare_for_use() {
 }
 
 void Peer_A::start_writer() {
-    if ((!on_writing) && (!write_buffer.empty())){
+    if ((!on_writing) && (!write_buffer.empty())) {
         on_writing = true;
 
         write_pointer = write_buffer.front();
