@@ -22,6 +22,19 @@ void Client_Core::load_config(){
     }
 }
 
+void Client_Core::reconnect() {
+    for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
+        p->interface = new Async_Connect(loop, p->address, p->port, DEFAULT_TIMEOUT);
+        p->interface->connected_event = [this, p](int d){
+            auto * b = new Client_B(loop, p, d, this);
+            connection_b.push_back(b);
+            b->start();
+        };
+        p->interface->failed_event = [this](){};
+        p->interface->start();
+    });
+}
+
 void Client_Core::start() {
     // FACE A
     interface_a = new Async_Accept(loop, listen_address, listen_port);
@@ -34,16 +47,13 @@ void Client_Core::start() {
     interface_a->start();
 
     // FACE B
-    for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
-        p->interface = new Async_Connect(loop, p->address, p->port, DEFAULT_TIMEOUT);
-        p->interface->connected_event = [this, p](int d){
-            auto * b = new Client_B(loop, p, d, this);
-            connection_b.push_back(b);
-            b->start();
-        };
-        p->interface->failed_event = [this](){};
-        p->interface->start();
-    });
+    reconnect();
+}
+
+void Client_Core::schedule_check() {
+    if (connection_b_available.size() < LOWEST_CONNECTION){
+        reconnect();
+    }
 }
 
 Client_Core::Client_Core(ev::default_loop *loop) {

@@ -28,7 +28,9 @@ public:
 
     // Method
     void load_config();
+    void reconnect();
     void start();
+    void schedule_check();
 
     // Constructor
     explicit  Client_Core(ev::default_loop * loop);

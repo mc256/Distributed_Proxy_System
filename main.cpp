@@ -38,6 +38,13 @@ int main(int argc, char **argv) {
         }
     };
     timeout_l.repeat_event = [](Container *c, int i) {
+        // JOBS
+        if (c->cc != nullptr){
+            c->cc->schedule_check();
+        }
+
+
+        // DEBUG
         cout << c->mode << "---------------------->" << i << endl;
         if (c->cc != nullptr) {
             cout << "Client A:" << endl;
