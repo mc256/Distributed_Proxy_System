@@ -20,7 +20,7 @@ tuple<char *, size_t > Peer_A::generate_regular_response(string request) {
     stringstream response;
     if (protocol == "HTTP/1.1" && method == "GET") {
         response
-                << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Hello World!</title></head><body><center><h1>It works!</h1></center></body></html>\r\n\r\n";
+                << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Hello World!</title></head><body><center><h1>It works!</h1><img src=\"https://note.masterchan.me/wp-content/uploads/sites/2/2018/03/example.jpg\" /></center></body></html>\r\n\r\n";
         buffer = strdup(response.str().c_str());
         buffer_size = response.str().length();
     } else {
