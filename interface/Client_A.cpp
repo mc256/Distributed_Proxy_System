@@ -47,7 +47,11 @@ void Client_A::start() {
         up_link_transmit();
 
         read_handler->reset(new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
-        read_handler->start();
+        if (read_buffer.size() <= READ_BUFFER_SIZE) {
+            read_handler->start();
+        }else{
+            holding_reader = true;
+        }
     };
     read_handler->failed_event = read_handler->closed_event = [this](char *buf, size_t s) {
         DEBUG(cout << "["<< socket_id << "]\t"<< "|==x " << s << endl;)
@@ -111,6 +115,10 @@ void Client_A::clear_read_buffer(size_t offset) {
         delete read_buffer.front();
         read_buffer.pop_front();
     }
+    if (holding_reader && (read_buffer.size() < READ_BUFFER_SIZE)){
+        holding_reader = false;
+        this->read_handler->start();
+    }
 }
 
 void Client_A::terminate() {
@@ -128,6 +136,7 @@ Client_A::Client_A(ev::default_loop *loop, int socket_id, int interface_id, Clie
     // Initialize
     read_buffer_offset = 0;
     sort_buffer_offset = 0;
+    holding_reader = false;
 }
 
 Client_A::~Client_A() {

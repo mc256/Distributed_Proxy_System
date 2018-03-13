@@ -17,17 +17,18 @@ void Async_Read::read_callback(ev::io &w, int r) {
     }
     if (s > 0) {
         this->position += s;
+        if (this->recv_event != nullptr) this->recv_event(this->buffer, this->position);
         if (this->position == this->length) {
             this->stop_watchers();
-            this->read_event(this->buffer, this->length);
+            this->read_event(this->buffer, this->position);
         }
     } else if (s == 0) {
         this->stop_watchers();
-        this->closed_event(this->buffer, this->length);
+        this->closed_event(this->buffer, this->position);
     } else {
         if (!(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
             this->stop_watchers();
-            this->failed_event(this->buffer, this->length);
+            this->failed_event(this->buffer, this->position);
         }
     }
 }
@@ -101,4 +102,5 @@ Async_Read::~Async_Read() {
     this->read_event = nullptr;
     this->closed_event = nullptr;
     this->failed_event = nullptr;
+    this->recv_event = nullptr;
 }

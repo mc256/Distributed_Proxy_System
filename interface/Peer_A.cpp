@@ -48,7 +48,16 @@ void Peer_A::start() {
     read_handler->read_event = read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
         string header(buf);
         delete buf;
+        read_handler->recv_event = nullptr;
         verify_client(header);
+    };
+    read_handler->recv_event = [this](char *buf, ssize_t s) {
+        if (s > 100 && buf[s - 1] == '\n' && buf[s] == '\0'){
+            string header(buf);
+            delete buf;
+            read_handler->recv_event = nullptr;
+            verify_client(header);
+        }
     };
 
     // Write
@@ -70,6 +79,11 @@ void Peer_A::verify_client(string s) {
         // Fail the verification
         string response = generate_regular_response(s);
         write_handler->reset(strdup(response.c_str()), response.length());
+        write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+            delete buf;
+            close(socket_id);
+            delete this;
+        };
         write_handler->start();
 
     } else {

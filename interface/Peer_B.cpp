@@ -47,12 +47,16 @@ void Peer_B::start() {
     read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_undefined_length(true);
     read_handler->read_event = [this](char *buf, size_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"<==| " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "<==| " << s << endl;)
         read_buffer.push_back(new Packet(buf, s));
         down_link_transmit();
 
         read_handler->reset(new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
-        read_handler->start();
+        if (read_buffer.size() <= READ_BUFFER_SIZE) {
+            read_handler->start();
+        }else{
+            holding_reader = true;
+        }
     };
     read_handler->failed_event = read_handler->closed_event = [this](char *buf, size_t s) {
 
@@ -122,6 +126,9 @@ void Peer_B::clear_read_buffer(size_t offset) {
         delete read_buffer.front();
         read_buffer.pop_front();
     }
+    if (holding_reader && (read_buffer.size() < READ_BUFFER_SIZE)){
+        read_handler->start();
+    }
 }
 
 void Peer_B::terminate() {
@@ -144,6 +151,7 @@ Peer_B::Peer_B(ev::default_loop *loop, int interface_id, Peer_Core *core) {
     read_buffer_offset = 0;
     sort_buffer_offset = 0;
     flag_terminated = false;
+    holding_reader = false;
 }
 
 Peer_B::~Peer_B() {

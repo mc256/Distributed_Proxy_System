@@ -23,6 +23,7 @@ public:
     int interface_id;
 
     // Read
+    bool holding_reader;
     Async_Read *read_handler;
     size_t read_buffer_offset;
     deque<Packet *> read_buffer;

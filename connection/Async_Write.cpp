@@ -15,15 +15,15 @@ void Async_Write::write_callback(ev::io &w, int r) {
         this->position += s;
         if (this->position == this->length){
             this->stop_watchers();
-            this->wrote_event(this->buffer, this->length);
+            this->wrote_event(this->buffer, this->position);
         }
     }else if( s == 0){
         this->stop_watchers();
-        this->closed_event(this->buffer, this->length);
+        this->closed_event(this->buffer, this->position);
     }else{
         if (!(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
             this->stop_watchers();
-            this->failed_event(this->buffer, this->length);
+            this->failed_event(this->buffer, this->position);
         }
     }
 }
