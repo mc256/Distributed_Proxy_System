@@ -48,35 +48,35 @@ int main(int argc, char **argv) {
         printf("\033c");
         cout << c->mode << " - Page " << i << endl;
         if (c->cc != nullptr) {
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Client A: Browser to Client Program" << endl;
             for (const auto &kv : c->cc->connection_a) {
                 if (kv.second == nullptr)continue;
                 cout << kv.first << "\t" << kv.second->info() << endl;
             }
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Client B: Client Program to Proxy Peer" << endl;
             for (const auto &v : c->cc->connection_b) {
                 cout << v->info() << endl;
             }
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Client B: Client Program to Proxy Peer - Active Connection" << endl;
             for (const auto &v : c->cc->connection_b_available) {
                 cout << v->info() << endl;
             }
         }
         if (c->pc != nullptr) {
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Peer A: Client Program to Proxy Peer" << endl;
             for (const auto &v : c->pc->connection_a) {
                 cout << v->info() << endl;
             }
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Peer A: Client Program to Proxy Peer - Active Connection" << endl;
             for (const auto &v : c->pc->connection_a_available) {
                 cout << v->info() << endl;
             }
-            cout << "-----------------------------------" << endl;
+            cout << "\n-----------------------------------" << endl;
             cout << "Peer B: Proxy Peer to SOCKS proxy server" << endl;
             for (const auto &kv : c->pc->connection_b) {
                 if (kv.second == nullptr)continue;
