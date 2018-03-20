@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
             for (const auto &v : c->cc->connection_b_available) {
                 cout << v->info() << endl;
             }
+            cout << "\n-----------------------------------" << endl;
         }
         if (c->pc != nullptr) {
             cout << "\n-----------------------------------" << endl;
@@ -82,6 +83,7 @@ int main(int argc, char **argv) {
                 if (kv.second == nullptr)continue;
                 cout << kv.first << "\t" << kv.second->info() << endl;
             }
+            cout << "\n-----------------------------------" << endl;
 
         }
     };
