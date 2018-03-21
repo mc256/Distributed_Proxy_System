@@ -5,15 +5,14 @@
 #include "Client_B.hpp"
 
 
-char *Client_B::generate_fake_request() {
+tuple<char *, size_t > Client_B::generate_fake_request() {
     string fake_header = "GET / HTTP/1.1\r\nHost:errno104.com\r\nConnection: keep-alive\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: en-CA,en;q=0.9,zh;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,ja;q=0.5,fr;q=0.4\r\n";
 
     //Construct key
     string key = Encryption::sha_hash(peer->password);
-    string request = fake_header + key;
-    request = request + string(FAKE_HEADER_SIZE - request.size(), ' ');
+    string request = fake_header + "Cookie: __utmc=" + key + "\r\n\r\n";
 
-    return strdup(request.c_str());
+    return tuple<char *, size_t >(strdup(request.c_str()),request.length());
 }
 
 
@@ -21,26 +20,30 @@ char *Client_B::generate_fake_request() {
 // STEP 1
 void Client_B::start() {
     // Read
-    read_handler = new Async_Read(loop, socket_id, new char[FAKE_HEADER_SIZE], FAKE_HEADER_SIZE);
+    read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_timeout(DEFAULT_TIMEOUT);
-    read_handler->read_event = [this](char *buf, ssize_t s) {
-        string header(buf);
-        delete buf;
-        verify_peer(header);
+    read_handler->set_use_recv(true);
+    read_handler->recv_event = [this](char *buf, ssize_t s) {
+        verify_peer(buf, s);
     };
-    read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
+    read_handler->closed_event =
+    read_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         delete this;
     };
 
     // Write
-    write_handler = new Async_Write(loop, socket_id, generate_fake_request(), FAKE_HEADER_SIZE);
+    char * request;
+    size_t request_size;
+    tie(request, request_size) = generate_fake_request();
+    write_handler = new Async_Write(loop, socket_id, request, request_size);
     write_handler->set_timeout(DEFAULT_TIMEOUT);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
         delete buf;
         read_handler->start();
     };
-    write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+    write_handler->closed_event =
+    write_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         delete this;
     };
@@ -51,12 +54,21 @@ void Client_B::start() {
 }
 
 // STEP 2
-void Client_B::verify_peer(string s) {
-    string key = Encryption::sha_hash(core->password_confirm);
-    size_t found = s.find(key);
-    if (found == string::npos) {
+void Client_B::verify_peer(char *buf, ssize_t s) {
+    if (s == MAX_BUFFER_SIZE){
+        delete buf;
         delete this;
-    } else {
+        return;
+    }
+
+    string content(buf, s);
+    size_t found = content.find(key);
+
+    if (found != string::npos) {
+        delete buf;
+        read_handler->stop_watchers();
+        read_handler->set_timeout(0);
+        read_handler->set_use_recv(false);
         prepare_for_use();
     }
 }
@@ -171,6 +183,7 @@ Client_B::Client_B(ev::default_loop *loop, Proxy_Peer *peer, int socket_id, Clie
     this->core = core;
     this->on_writing = false;
     this->on_reading_data = false;
+    this->key = Encryption::sha_hash(core->password_confirm);
 }
 
 Client_B::~Client_B() {

@@ -11,6 +11,7 @@ void Peer_Core::load_config() {
         setting_file >> listen_address >> listen_port_begin >> listen_port_end;
         setting_file >> password >> confirm_password;
         setting_file >> socks_address >> socks_port;
+        setting_file >> fake_source;
     } else {
         cout << "Cannot load settings" << endl;
         exit(1);

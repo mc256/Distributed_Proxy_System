@@ -17,12 +17,15 @@ void Async_Read::read_callback(ev::io &w, int r) {
     }
     if (s > 0) {
         this->position += s;
-        if (this->recv_event != nullptr){
-            if (this->recv_event(this->buffer, this->position)) return;
-        }
         if (this->position == this->length) {
             this->stop_watchers();
-            this->read_event(this->buffer, this->position);
+            if (use_recv){
+                this->recv_event(this->buffer, this->position);
+            } else {
+                this->read_event(this->buffer, this->position);
+            }
+        } else if (use_recv){
+            this->recv_event(this->buffer, this->position);
         }
     } else if (s == 0) {
         this->stop_watchers();
@@ -42,6 +45,10 @@ void Async_Read::timeout_callback(ev::timer &w, int r) {
 
 void Async_Read::set_undefined_length(bool b) {
     this->undefined_length = b;
+}
+
+void Async_Read::set_use_recv(bool b){
+    this->use_recv = b;
 }
 
 void Async_Read::set_timeout(int i) {
@@ -71,6 +78,7 @@ Async_Read::Async_Read(ev::default_loop *loop, int descriptor) {
     this->descriptor = descriptor;
     this->timeout = 0;
     this->undefined_length = false;
+    this->use_recv = false;
 
     // Set watchers
     this->read_io_watcher.set(*loop);
@@ -89,6 +97,7 @@ Async_Read::Async_Read(ev::default_loop *loop, int descriptor, char *buffer, ssi
     this->length = length;
     this->timeout = 0;
     this->undefined_length = false;
+    this->use_recv = false;
 
     // Set watchers
     this->read_io_watcher.set(*loop);

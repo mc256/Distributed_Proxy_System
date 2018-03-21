@@ -13,12 +13,13 @@ private:
     Client_Core * core;
     ev::default_loop * loop;
 
-    char * generate_fake_request();
+    tuple<char *, size_t > generate_fake_request();
 
 public:
     // Utility
     Proxy_Peer * peer;
     int socket_id;
+    string key;
 
     // Read
     bool on_reading_data; // false = meta; true = data
@@ -36,7 +37,7 @@ public:
     void start();
 
     // STEP 2
-    void verify_peer(string s);
+    void verify_peer(char *buf, ssize_t s);
 
     // Features
     void prepare_for_use();

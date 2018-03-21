@@ -5,47 +5,15 @@
 #include "Peer_A.hpp"
 
 
-tuple<char *, size_t> Peer_A::generate_regular_response(string request) {
-    // For the request does not pass the verification
-    // They will receive a normal web page
-    stringstream read_stream;
-    read_stream.write(request.c_str(), request.length() + 1);
-
-    string method, uri, protocol;
-    read_stream >> method >> uri >> protocol;
-
-    char *buffer;
-    size_t buffer_size;
-
-    stringstream response;
-    if (protocol == "HTTP/1.1" && method == "GET") {
-        response
-                << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Hello World!</title></head><body><center><h1>It works!</h1><img src=\"https://note.masterchan.me/wp-content/uploads/sites/2/2018/03/example.jpg\" /></center></body></html>\r\n\r\n";
-        buffer = strdup(response.str().c_str());
-        buffer_size = response.str().length();
-    } else {
-        // Bad Request
-        response
-                << "HTTP/1.1 400 Bad Request\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Bad Request</title></head><body><center><h1>Bad Request</h1></center></body></html>\r\n\r\n";
-        buffer = strdup(response.str().c_str());
-        buffer_size = response.str().length();
-    }
-
-    return tuple<char *, size_t>(buffer, buffer_size);
-}
-
-tuple<char *, size_t> Peer_A::generate_fake_response(string request) {
+tuple<char *, size_t> Peer_A::generate_fake_http_response(string request) {
     // Send confirm code and process to next step
     char *buffer;
     size_t buffer_size;
 
     stringstream response;
-    response
-            << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: text/html\r\nLocation: https://errno104.com/\r\n\r\n<html>\r\n<head><title>Hello World!</title></head><body><center><h1>It works!</h1></center></body></html>\r\n\r\n";
+    response << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: image/jpeg\r\n";
+    response << "Location: https://errno104.com/\r\n\r\n";
     response << Encryption::sha_hash(core->confirm_password);
-
-    size_t padding = FAKE_HEADER_SIZE - response.str().length();
-    response << string(padding, ' ');
 
     buffer = strdup(response.str().c_str());
     buffer_size = response.str().length();
@@ -54,29 +22,36 @@ tuple<char *, size_t> Peer_A::generate_fake_response(string request) {
 
 void Peer_A::start() {
     // Read
-    read_handler = new Async_Read(loop, socket_id, new char[FAKE_HEADER_SIZE], FAKE_HEADER_SIZE);
+    read_handler = new Async_Read(loop, socket_id, new char[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
     read_handler->set_timeout(DEFAULT_TIMEOUT);
-    read_handler->read_event = read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
-        string header(buf);
+    read_handler->set_use_recv(true);
+    read_handler->closed_event =
+    read_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
-        verify_client(header);
+        delete this;
     };
     read_handler->recv_event = [this](char *buf, ssize_t s) -> bool {
-        if (s > 100 && buf[s - 4] == '\r' && buf[s - 3] == '\n' && buf[s - 2] == '\r' && buf[s - 1] == '\n') {
-            string header(buf);
-            delete buf;
+        if (buf[s - 4] == '\r' && buf[s - 3] == '\n' && buf[s - 2] == '\r' && buf[s - 1] == '\n') {
             read_handler->stop_watchers();
+
+            string header(buf,s);
+            delete buf;
+            read_handler->set_use_recv(false);
             verify_client(header);
-            return true;
+        } else if (s == MAX_BUFFER_SIZE) {
+            string header(buf,s);
+            delete buf;
+            read_handler->set_use_recv(false);
+            verify_client(header);
         }
-        return false;
     };
 
     // Write
     write_handler = new Async_Write(loop, socket_id);
     write_handler->set_timeout(DEFAULT_TIMEOUT);
-    write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf,
-                                                                                                    ssize_t s) {
+    write_handler->wrote_event =
+    write_handler->closed_event =
+    write_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         delete this;
     };
@@ -88,26 +63,18 @@ void Peer_A::start() {
 void Peer_A::verify_client(string s) {
     string key = Encryption::sha_hash(core->password);
     auto found = s.find(key);
+
     if (found == string::npos) {
         // Fail the verification
-        char *response;
-        size_t response_size;
-        tie(response, response_size) = generate_regular_response(s);
-        write_handler->reset(response, response_size);
-        write_handler->wrote_event = write_handler->closed_event = write_handler->failed_event = [this](char *buf,
-                                                                                                        ssize_t s) {
-            delete buf;
-            close(socket_id);
-            delete this;
-        };
-        write_handler->start();
-
+        File_Streamer *fs = new File_Streamer(loop, socket_id, core->fake_source);
+        fs->start();
+        delete this;
     } else {
         // Pass the verification
         char *response;
         size_t response_size;
-        tie(response, response_size) = generate_fake_response(s);
-        write_handler->reset(response, FAKE_HEADER_SIZE);
+        tie(response, response_size) = generate_fake_http_response(s);
+        write_handler->reset(response, response_size);
         write_handler->wrote_event = [this](char *buf, ssize_t s) {
             delete buf;
             prepare_for_use();

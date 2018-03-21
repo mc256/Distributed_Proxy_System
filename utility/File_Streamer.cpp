@@ -61,7 +61,8 @@ File_Streamer::File_Streamer(ev::default_loop *loop, int socket_id, string filen
         }
     };
 
-    write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
+    write_handler->closed_event =
+    write_handler->failed_event = [this](char *buf, ssize_t s) {
         delete buf;
         close(this->socket_id);
         delete this;
