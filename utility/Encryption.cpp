@@ -21,3 +21,7 @@ string Encryption::sha_hash(string input) {
 bool Encryption::chance(int p) {
     return ((rand() % 100) <= p);
 }
+
+int Encryption::get_random(int mean, int variance) {
+    return (mean + rand() % (2 * variance));
+}

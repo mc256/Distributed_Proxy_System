@@ -86,7 +86,7 @@ void Peer_A::verify_client(string s) {
 void Peer_A::prepare_for_use() {
     // Read
     on_reading_data = false;
-    read_handler->set_timeout(0);
+    read_handler->set_timeout(Encryption::get_random(DEFAULT_TIMEOUT, 10));
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "[" << socket_id << "]\t" << "|==> " << s << endl;)
@@ -149,7 +149,7 @@ void Peer_A::prepare_for_use() {
     };
 
     // Write
-    write_handler->set_timeout(0);
+    write_handler->set_timeout(Encryption::get_random(DEFAULT_TIMEOUT, 10));
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "[" << socket_id << "]\t" << "|<== " << s << endl;)
         delete write_pointer;
