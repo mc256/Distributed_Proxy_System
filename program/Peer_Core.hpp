@@ -10,6 +10,8 @@
 class Peer_Core {
 private:
     ev::default_loop * loop;
+    ev::timer watcher;
+
 public:
     // Face A
     string listen_address;
@@ -32,6 +34,9 @@ public:
     void load_config();
     void start();
     Peer_B * connect_socks_server(int dispatcher);
+
+    // Call back
+    void operator()(ev::timer &w, int r);
 
     // Constructor
     explicit  Peer_Core(ev::default_loop * loop);

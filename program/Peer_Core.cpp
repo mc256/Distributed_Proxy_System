@@ -32,6 +32,10 @@ void Peer_Core::start() {
 
     // FACE B
     // Do nothing, the FACE B will create new connection if needed
+
+
+    // Scheduler
+    watcher.start();
 }
 
 Peer_B *Peer_Core::connect_socks_server(int dispatcher) {
@@ -59,9 +63,24 @@ Peer_B *Peer_Core::connect_socks_server(int dispatcher) {
 
 }
 
+
+void Peer_Core::operator()(ev::timer &w, int r) {
+    // Retransmit Package
+    for (const auto &kv : connection_b) {
+        if (kv.second == nullptr)continue;
+        kv.second->down_link_transmit();
+        kv.second->start_writer();
+    }
+}
+
 Peer_Core::Peer_Core(ev::default_loop *loop) {
     // Copy
     this->loop = loop;
+
+    // Initialize
+    this->watcher.set(*loop);
+    this->watcher.set(this);
+    this->watcher.start(0, Encryption::get_random(RESEND_PERIOD + 1, RESEND_PERIOD));
 
     // Load Configurations
     load_config();

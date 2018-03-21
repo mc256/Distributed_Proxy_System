@@ -14,7 +14,6 @@ private:
     ev::default_loop * loop;
 
     // Method
-    void down_link_transmit();
     void send_signal(Packet *signal);
 
 public:
@@ -38,6 +37,7 @@ public:
     // Method
     void start();
     void start_writer();
+    void down_link_transmit();
     void clear_read_buffer(size_t offset);
     void terminate();
 

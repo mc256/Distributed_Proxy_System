@@ -10,6 +10,8 @@
 class Client_Core{
 private:
     ev::default_loop * loop;
+    ev::timer watcher;
+
 public:
     // Face A
     Async_Accept * interface_a;
@@ -30,7 +32,9 @@ public:
     void load_config();
     void reconnect();
     void start();
-    void schedule_check();
+
+    // Call back
+    void operator()(ev::timer &w, int r);
 
     // Constructor
     explicit  Client_Core(ev::default_loop * loop);

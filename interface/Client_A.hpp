@@ -14,7 +14,6 @@ private:
     ev::default_loop *loop;
 
     // Method
-    void up_link_transmit();
     void send_signal(Packet *signal);
 
 public:
@@ -37,6 +36,7 @@ public:
     // Method
     void start();
 
+    void up_link_transmit();
     void start_writer();
 
     void clear_read_buffer(size_t offset);

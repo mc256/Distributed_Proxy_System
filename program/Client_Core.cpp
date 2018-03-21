@@ -48,11 +48,24 @@ void Client_Core::start() {
 
     // FACE B
     reconnect();
+
+    // Scheduler
+    watcher.start();
+
 }
 
-void Client_Core::schedule_check() {
+
+void Client_Core::operator()(ev::timer &w, int r) {
+    // Reconnect Peers
     if (connection_b_available.size() < LOWEST_CONNECTION){
         reconnect();
+    }
+
+    // Retransmit Package
+    for (const auto &kv : connection_a) {
+        if (kv.second == nullptr)continue;
+        kv.second->up_link_transmit();
+        kv.second->start_writer();
     }
 }
 
@@ -62,6 +75,10 @@ Client_Core::Client_Core(ev::default_loop *loop) {
 
     // Initialize
     this->connection_a_count = 0;
+
+    this->watcher.set(*loop);
+    this->watcher.set(this);
+    this->watcher.start(0, Encryption::get_random(RESEND_PERIOD + 1, RESEND_PERIOD));
 
     // Load Configurations
     load_config();
