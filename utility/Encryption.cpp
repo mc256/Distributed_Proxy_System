@@ -23,5 +23,5 @@ bool Encryption::chance(int p) {
 }
 
 int Encryption::get_random(int mean, int variance) {
-    return (mean + rand() % (2 * variance));
+    return (mean + rand() % (2 * variance) - variance);
 }
