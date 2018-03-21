@@ -57,7 +57,6 @@ Peer_B *Peer_Core::connect_socks_server(int dispatcher) {
 
     return b;
 
-
 }
 
 Peer_Core::Peer_Core(ev::default_loop *loop) {

@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     ev::default_loop loop;
 
     //EV listener
-    Timeout_Listener timeout_l(&loop, 0, 2);
+    Timeout_Listener timeout_l(&loop, 0, 1);
     timeout_l.after_launch = [argc, argv](Container *c) {
         if (argc > 1) {
             string s(argv[1]);
@@ -20,21 +20,26 @@ int main(int argc, char **argv) {
                 c->cc = new Client_Core(c->loop);
                 c->cc->start();
 
-            } else if (s == "peer-server") {
+            } else if (s == "peer") {
                 c->mode = "peer           ";
                 c->pc = new Peer_Core(c->loop);
                 c->pc->start();
 
-            } else if (s == "server-socks5") {
+            } else if (s == "socks5") {
                 c->mode = "server-socks5  ";
                 c->sc = new Socks_Core(c->loop);
                 c->sc->start();
-
             }
+
         } else {
             c->mode = "test           ";
+        }
 
-
+        for (int i = 1; i < argc; ++i) {
+            string s(argv[i]);
+            if (s == "clear"){
+                c->clear_screen = true;
+            }
         }
     };
     timeout_l.repeat_event = [](Container *c, int i) {
@@ -45,8 +50,10 @@ int main(int argc, char **argv) {
 
 
         // DEBUG
-        // printf("\033c");
-        cout << c->mode << " - Page " << i << endl;
+        if (c->clear_screen){
+            printf("\033c");
+        }
+        cout << c->mode << " - Page " << i << "\tTime " << c->get_time() << endl;
         if (c->cc != nullptr) {
             cout << "\n-----------------------------------" << endl;
             cout << "Client A: Browser to Client Program" << endl;

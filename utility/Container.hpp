@@ -15,10 +15,11 @@ public:
     Peer_Core * pc;
     Socks_Core * sc;
 
+    bool clear_screen;
 
     ev::default_loop * loop;
 
-
+    time_t get_time();
 
     Container();
 
