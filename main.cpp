@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
 
         // DEBUG
-        printf("\033c");
+        // printf("\033c");
         cout << c->mode << " - Page " << i << endl;
         if (c->cc != nullptr) {
             cout << "\n-----------------------------------" << endl;

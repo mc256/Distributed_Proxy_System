@@ -130,6 +130,7 @@ class Handshake;
 
 #include "utility/Timeout_Listener.hpp"
 #include "utility/Command_Listener.hpp"
+#include "utility/File_Streamer.hpp"
 
 #include "interface/Client_A.hpp"
 #include "interface/Client_B.hpp"
