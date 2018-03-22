@@ -58,11 +58,6 @@ int main(int argc, char **argv) {
             }
             cout << "\n-----------------------------------" << endl;
             cout << "Client B: Client Program to Proxy Peer" << endl;
-            for (const auto &v : c->cc->connection_b) {
-                cout << v->info() << endl;
-            }
-            cout << "\n-----------------------------------" << endl;
-            cout << "Client B: Client Program to Proxy Peer - Active Connection" << endl;
             for (const auto &v : c->cc->connection_b_available) {
                 cout << v->info() << endl;
             }
@@ -70,12 +65,8 @@ int main(int argc, char **argv) {
         }
         if (c->pc != nullptr) {
             cout << "\n-----------------------------------" << endl;
+
             cout << "Peer A: Client Program to Proxy Peer" << endl;
-            for (const auto &v : c->pc->connection_a) {
-                cout << v->info() << endl;
-            }
-            cout << "\n-----------------------------------" << endl;
-            cout << "Peer A: Client Program to Proxy Peer - Active Connection" << endl;
             for (const auto &v : c->pc->connection_a_available) {
                 cout << v->info() << endl;
             }
