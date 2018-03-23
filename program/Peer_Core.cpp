@@ -52,13 +52,8 @@ Peer_B *Peer_Core::connect_socks_server(int dispatcher) {
     auto *connection = new Async_Connect(loop, socks_address, socks_port, DEFAULT_TIMEOUT);
     connection->connected_event = [this, b](int d) {
         b->socket_id = d;
-        if (!b->flag_terminated){
-            b->start();
-            b->start_writer();
-        }else{
-            close(d);
-            delete b;
-        }
+        b->start();
+        b->start_writer();
     };
     connection->failed_event = [this, b]() {
         delete b;
