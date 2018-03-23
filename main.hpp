@@ -36,6 +36,7 @@
 #include <thread>
 #include <time.h>
 
+#include <openssl/aes.h>
 #include <openssl/sha.h>
 
 #define UCHAR unsigned char
