@@ -10,8 +10,8 @@
 class Peer_B {
 private:
     // Utility
-    Peer_Core * core;
-    ev::default_loop * loop;
+    Peer_Core *core;
+    ev::default_loop *loop;
 
     // Method
     void send_signal(Packet *signal);
@@ -20,30 +20,34 @@ public:
     // Utility
     int socket_id;
     int interface_id;
-    bool flag_terminated;
 
     // Read
     bool holding_reader;
-    Async_Read * read_handler;
+    Async_Read *read_handler;
     size_t read_buffer_offset;
     deque<Packet *> read_buffer;
 
     // Write
-    Async_Write * write_handler;
-    Packet * write_pointer = nullptr;
+    Async_Write *write_handler;
+    Packet *write_pointer = nullptr;
     size_t sort_buffer_offset;
     map<int, Packet *> sort_buffer;
 
     // Method
     void start();
+
     void start_writer();
+
     void down_link_transmit();
+
     void clear_read_buffer(size_t offset);
+
     void terminate();
 
 
     // Constructor & Destructor
-    Peer_B(ev::default_loop * loop, int interface_id, Peer_Core * core);
+    Peer_B(ev::default_loop *loop, int interface_id, Peer_Core *core);
+
     ~Peer_B();
 
     // Information
