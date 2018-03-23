@@ -13,7 +13,7 @@ private:
     Peer_Core * core;
     ev::default_loop *loop;
 
-    tuple<char *, size_t > generate_fake_http_response();
+    tuple<char *, size_t > generate_fake_http_response(string key);
 
 public:
     // Utility
@@ -38,7 +38,7 @@ public:
     // STEP 2
     void verify_client(string s);
     void fail_verification();
-    void pass_verification();
+    void pass_verification(string correct_key);
     void start_writer();
 
     // Features

@@ -5,7 +5,7 @@
 #include "Peer_A.hpp"
 
 
-tuple<char *, size_t> Peer_A::generate_fake_http_response() {
+tuple<char *, size_t> Peer_A::generate_fake_http_response(string key) {
     // Send confirm code and process to next step
     char *buffer;
     size_t buffer_size;
@@ -13,7 +13,7 @@ tuple<char *, size_t> Peer_A::generate_fake_http_response() {
     stringstream response;
     response << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: image/jpeg\r\n";
     response << "Location: https://errno104.com/\r\n\r\n";
-    response << Encryption::sha_hash(core->confirm_password);
+    response << Encryption::sha_hash(key = key + core->confirm_password);
 
     buffer = strdup(response.str().c_str());
     buffer_size = response.str().length();
@@ -72,7 +72,7 @@ void Peer_A::verify_client(string s) {
         }
         auto found = s.find(key);
         if (found != string::npos) {
-            pass_verification();
+            pass_verification(key);
             core->used_keys.push_back(key);
             if (core->used_keys.size() > 100) { core->used_keys.pop_front(); }
             return;
@@ -87,10 +87,10 @@ void Peer_A::fail_verification() {
     delete this;
 }
 
-void Peer_A::pass_verification() {
+void Peer_A::pass_verification(string correct_key) {
     char *response;
     size_t response_size;
-    tie(response, response_size) = generate_fake_http_response();
+    tie(response, response_size) = generate_fake_http_response(correct_key);
     write_handler->reset(response, response_size);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
         delete buf;

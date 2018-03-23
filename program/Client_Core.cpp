@@ -50,7 +50,7 @@ void Client_Core::start() {
     interface_a->start();
 
     // FACE B
-    reconnect();
+    // reconnect();
 
     // Scheduler
     watcher.start();
