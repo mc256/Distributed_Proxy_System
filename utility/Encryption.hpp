@@ -13,6 +13,7 @@ public:
     static string sha_hash(string input);
     static bool chance(int p);
     static int get_random(int mean, int variance);
+    static long long get_current_time(int error);
 };
 
 

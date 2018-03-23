@@ -19,7 +19,9 @@ public:
 
     int descriptor;
 
-    Async_Connect * interface;
+    Async_Connect * interface_connect;
+    Async_Accept * interface_accept;
+
 
     Proxy_Peer(string address, int port, string password);
 

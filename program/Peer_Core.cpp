@@ -8,10 +8,17 @@ void Peer_Core::load_config() {
     ifstream setting_file;
     setting_file.open("peer_settings.txt");
     if (setting_file.good()) {
-        setting_file >> listen_address >> listen_port_begin >> listen_port_end;
-        setting_file >> password >> confirm_password;
+        setting_file >> confirm_password;
         setting_file >> socks_address >> socks_port;
         setting_file >> fake_source;
+
+        string address;
+        int port;
+        string password;
+        while (setting_file >> address >> port >> password){
+            auto * setting = new Proxy_Peer(address, port, password);
+            interface_a.push_back(setting);
+        }
     } else {
         cout << "Cannot load settings" << endl;
         exit(1);
@@ -20,19 +27,18 @@ void Peer_Core::load_config() {
 
 void Peer_Core::start() {
     // FACE A
-    for (int i = listen_port_begin; i <= listen_port_end; ++i) {
-        auto *interface = new Async_Accept(loop, listen_address, i);
-        interface->accepted_event = [this](int d, sockaddr_storage r, socklen_t rl) {
-            auto *a = new Peer_A(loop, d, this);
+    for_each(interface_a.begin(), interface_a.end(), [this](Proxy_Peer *p){
+        p->interface_accept = new Async_Accept(loop, p->address, p->port);
+        p->interface_accept->accepted_event = [this, p](int d, sockaddr_storage r, socklen_t rl) {
+            auto *a = new Peer_A(loop, p, d, this);
             connection_a.push_back(a);
             a->start();
         };
-        interface->start();
-    }
+        p->interface_accept->start();
+    });
 
     // FACE B
     // Do nothing, the FACE B will create new connection if needed
-
 
     // Scheduler
     watcher.start();

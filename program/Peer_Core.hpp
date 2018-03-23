@@ -14,16 +14,13 @@ private:
 
 public:
     // Face A
-    string listen_address;
-    int listen_port_begin;  //inclusive
-    int listen_port_end;    //inclusive
-    string password;
     string confirm_password;
     string fake_source;
 
-    vector<Async_Accept *> interface_a;
+    vector<Proxy_Peer *> interface_a;
     vector<Peer_A *> connection_a;
     vector<Peer_A *> connection_a_available;
+    deque<string> used_keys;
 
     // Face B
     string socks_address;

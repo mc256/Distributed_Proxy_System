@@ -5,7 +5,7 @@
 #include "Peer_A.hpp"
 
 
-tuple<char *, size_t> Peer_A::generate_fake_http_response(string request) {
+tuple<char *, size_t> Peer_A::generate_fake_http_response() {
     // Send confirm code and process to next step
     char *buffer;
     size_t buffer_size;
@@ -34,12 +34,12 @@ void Peer_A::start() {
         if (buf[s - 4] == '\r' && buf[s - 3] == '\n' && buf[s - 2] == '\r' && buf[s - 1] == '\n') {
             read_handler->stop_watchers();
 
-            string header(buf,s);
+            string header(buf, s);
             delete buf;
             read_handler->set_use_recv(false);
             verify_client(header);
         } else if (s == MAX_BUFFER_SIZE) {
-            string header(buf,s);
+            string header(buf, s);
             delete buf;
             read_handler->set_use_recv(false);
             verify_client(header);
@@ -61,26 +61,42 @@ void Peer_A::start() {
 }
 
 void Peer_A::verify_client(string s) {
-    string key = Encryption::sha_hash(core->password);
-    auto found = s.find(key);
 
-    if (found == string::npos) {
-        // Fail the verification
-        File_Streamer *fs = new File_Streamer(loop, socket_id, core->fake_source);
-        fs->start();
-        delete this;
-    } else {
-        // Pass the verification
-        char *response;
-        size_t response_size;
-        tie(response, response_size) = generate_fake_http_response(s);
-        write_handler->reset(response, response_size);
-        write_handler->wrote_event = [this](char *buf, ssize_t s) {
-            delete buf;
-            prepare_for_use();
-        };
-        write_handler->start();
+    for (int i = -1; i < 2; i ++) {
+        string key = Encryption::sha_hash(peer->password + to_string(Encryption::get_current_time(TOTP_INTERVAL) + i));
+        for (int j = 0; j < core->used_keys.size(); j ++){
+            if (core->used_keys[j] == key){
+                fail_verification();
+                return;
+            }
+        }
+        auto found = s.find(key);
+        if (found != string::npos) {
+            pass_verification();
+            core->used_keys.push_back(key);
+            if (core->used_keys.size() > 100) { core->used_keys.pop_front(); }
+            return;
+        }
     }
+    fail_verification();
+}
+
+void Peer_A::fail_verification() {
+    File_Streamer *fs = new File_Streamer(loop, socket_id, core->fake_source);
+    fs->start();
+    delete this;
+}
+
+void Peer_A::pass_verification() {
+    char *response;
+    size_t response_size;
+    tie(response, response_size) = generate_fake_http_response();
+    write_handler->reset(response, response_size);
+    write_handler->wrote_event = [this](char *buf, ssize_t s) {
+        delete buf;
+        prepare_for_use();
+    };
+    write_handler->start();
 }
 
 void Peer_A::prepare_for_use() {
@@ -181,11 +197,13 @@ void Peer_A::start_writer() {
     }
 }
 
-Peer_A::Peer_A(ev::default_loop *loop, int descriptor, Peer_Core *core) {
+Peer_A::Peer_A(ev::default_loop *loop, Proxy_Peer *peer, int descriptor, Peer_Core *core) {
     // Copy Values
     this->loop = loop;
     this->socket_id = descriptor;
     this->core = core;
+    this->peer = peer;
+
     this->on_writing = false;
     this->on_reading_data = false;
 }

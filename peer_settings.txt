@@ -1,5 +1,8 @@
-0.0.0.0 9101 9105
-password
 confirmcode
 127.0.0.1 9123
 ../test.jpg
+0.0.0.0 9101 passwrod1
+0.0.0.0 9102 passwrod2
+0.0.0.0 9103 passwrod3
+0.0.0.0 9104 passwrod4
+0.0.0.0 9105 passwrod5

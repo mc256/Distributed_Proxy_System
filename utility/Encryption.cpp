@@ -25,3 +25,7 @@ bool Encryption::chance(int p) {
 int Encryption::get_random(int mean, int variance) {
     return (mean + rand() % (2 * variance) - variance);
 }
+
+long long Encryption::get_current_time(int error){
+    return time(NULL) % (error <= 0 ? 1: error);
+}

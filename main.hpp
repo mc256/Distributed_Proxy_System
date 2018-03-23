@@ -44,12 +44,12 @@
 #define DEBUG(a) if (false) {a}
 
 #define MAX_BUFFER_SIZE 2048
-#define FAKE_HEADER_SIZE 600
 #define READ_BUFFER_SIZE 100
 #define LOWEST_CONNECTION 8
 #define RESEND_PERIOD 3
 #define ACK_CHANCE 50
 #define DEFAULT_TIMEOUT 30
+#define TOTP_INTERVAL 5
 
 struct SOCKS_Version_Client{
     UCHAR ver;

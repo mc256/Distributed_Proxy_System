@@ -8,12 +8,15 @@ void Client_Core::load_config(){
     ifstream setting_file;
     setting_file.open("client_settings.txt");
     if (setting_file.good()){
-        string addr;
+        // Basic config
+        setting_file >> listen_address >> listen_port >> password_confirm;
+
+        // Port address
+        string address;
         int port;
         string password;
-        setting_file >> listen_address >> listen_port >> password_confirm;
-        while (setting_file >> addr >> port >> password){
-            auto *setting = new Proxy_Peer(addr, port, password);
+        while (setting_file >> address >> port >> password){
+            auto *setting = new Proxy_Peer(address, port, password);
             interface_b.push_back(setting);
         }
     }else{
@@ -24,14 +27,14 @@ void Client_Core::load_config(){
 
 void Client_Core::reconnect() {
     for_each(interface_b.begin(), interface_b.end(), [this](Proxy_Peer *p) {
-        p->interface = new Async_Connect(loop, p->address, p->port, DEFAULT_TIMEOUT);
-        p->interface->connected_event = [this, p](int d){
+        p->interface_connect = new Async_Connect(loop, p->address, p->port, DEFAULT_TIMEOUT);
+        p->interface_connect->connected_event = [this, p](int d){
             auto * b = new Client_B(loop, p, d, this);
             connection_b.push_back(b);
             b->start();
         };
-        p->interface->failed_event = [this](){};
-        p->interface->start();
+        p->interface_connect->failed_event = [this](){};
+        p->interface_connect->start();
     });
 }
 
