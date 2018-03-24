@@ -9,14 +9,18 @@
 
 class Encryption {
 private:
-    AES_KEY aes_enc_key, aes_dec_key;
-    int num_enc, num_dec;
-    vector<unsigned char> encrypt_vector, decrypt_vector;
 public:
+    AES_KEY aes_enc_key;
+    AES_KEY aes_dec_key;
+    int num_enc;
+    int num_dec;
+    char * encrypt_vector;
+    char * decrypt_vector;
+
     void encrypt(char * buffer, size_t size);
     void decrypt(char * buffer, size_t size);
 
-    Encryption(string keyEncrypt, string keyDecrypt);
+    Encryption(string enc_key, string dec_key);
 
     static string sha_hash(string input);
     static bool chance(int p);

@@ -5,23 +5,40 @@
 #include "Encryption.hpp"
 
 // Method
-void Encryption::encrypt(char *buffer, size_t size) {
-    AES_cfb128_encrypt((unsigned char *)buffer, (unsigned char *)buffer, size, &aes_enc_key, encrypt_vector.data(), &num_enc, AES_ENCRYPT);
+void Encryption::encrypt(char *buffer, size_t buffer_size) {
+    AES_cfb128_encrypt(
+            (unsigned char *) buffer,(unsigned char *) buffer,
+            buffer_size,
+            &aes_enc_key,
+            (unsigned char *)encrypt_vector,
+            &num_enc,
+            AES_ENCRYPT
+    );
 }
 
-void Encryption::decrypt(char *buffer, size_t size) {
-    AES_cfb128_encrypt((unsigned char *)buffer, (unsigned char *)buffer, size, &aes_dec_key, decrypt_vector.data(), &num_dec, AES_DECRYPT);
+void Encryption::decrypt(char *buffer, size_t buffer_size) {
+    AES_cfb128_encrypt(
+            (unsigned char *) buffer,(unsigned char *) buffer,
+            buffer_size,
+            &aes_dec_key,
+            (unsigned char *)decrypt_vector,
+            &num_dec,
+            AES_DECRYPT
+    );
+
 }
 
 // Constructor
-Encryption::Encryption(string keyEncrypt, string keyDecrypt) {
-    AES_set_encrypt_key((unsigned char *) keyEncrypt.c_str(), 256, &aes_enc_key);
-    AES_set_decrypt_key((unsigned char *) keyDecrypt.c_str(), 256, &aes_dec_key);
-    num_dec = num_enc = 0;
+Encryption::Encryption(string enc_key, string dec_key) {
+    //key size must be greater than AES_BLOCK_SIZE
+    AES_set_encrypt_key((unsigned char *) enc_key.c_str(), 256, &aes_enc_key);
+    AES_set_encrypt_key((unsigned char *) dec_key.c_str(), 256, &aes_dec_key);
+    num_enc = 0;
+    num_dec = 0;
 
     string init_vector = "IdolMasterMillionLiveStage.";
-    encrypt_vector = vector<unsigned char>(init_vector.begin(),init_vector.end());
-    decrypt_vector = vector<unsigned char>(init_vector.begin(),init_vector.end());
+    encrypt_vector = strdup(init_vector.c_str());
+    decrypt_vector = strdup(init_vector.c_str());
 }
 
 // Static
