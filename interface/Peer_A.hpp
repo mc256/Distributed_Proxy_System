@@ -13,12 +13,14 @@ private:
     Peer_Core * core;
     ev::default_loop *loop;
 
-    tuple<char *, size_t > generate_fake_http_response(string key);
+    tuple<char *, size_t > generate_fake_http_response();
 
 public:
     // Utility
     Proxy_Peer * peer;
     int socket_id;
+    string key;
+    Encryption * coder;
 
     // Read
     bool on_reading_data;
@@ -38,7 +40,7 @@ public:
     // STEP 2
     void verify_client(string s);
     void fail_verification();
-    void pass_verification(string correct_key);
+    void pass_verification();
     void start_writer();
 
     // Features

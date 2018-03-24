@@ -20,6 +20,7 @@ public:
     Proxy_Peer * peer;
     int socket_id;
     string key;
+    Encryption * coder;
 
     // Read
     bool on_reading_data; // false = meta; true = data

@@ -5,7 +5,7 @@
 #include "Peer_A.hpp"
 
 
-tuple<char *, size_t> Peer_A::generate_fake_http_response(string key) {
+tuple<char *, size_t> Peer_A::generate_fake_http_response() {
     // Send confirm code and process to next step
     char *buffer;
     size_t buffer_size;
@@ -13,7 +13,7 @@ tuple<char *, size_t> Peer_A::generate_fake_http_response(string key) {
     stringstream response;
     response << "HTTP/1.1 200 OK\r\nServer: nginx\r\nContent-Type: image/jpeg\r\n";
     response << "Location: https://errno104.com/\r\n\r\n";
-    response << Encryption::sha_hash(key = key + core->confirm_password);
+    response << (key = Encryption::sha_hash(key + core->confirm_password));
 
     buffer = strdup(response.str().c_str());
     buffer_size = response.str().length();
@@ -63,7 +63,7 @@ void Peer_A::start() {
 void Peer_A::verify_client(string s) {
 
     for (int i = -1; i < 2; i ++) {
-        string key = Encryption::sha_hash(peer->password + to_string(Encryption::get_current_time(TOTP_INTERVAL) + i));
+        key = Encryption::sha_hash(peer->password + to_string(Encryption::get_current_time(TOTP_INTERVAL) + i));
         for (int j = 0; j < core->used_keys.size(); j ++){
             if (core->used_keys[j] == key){
                 fail_verification();
@@ -72,7 +72,7 @@ void Peer_A::verify_client(string s) {
         }
         auto found = s.find(key);
         if (found != string::npos) {
-            pass_verification(key);
+            pass_verification();
             core->used_keys.push_back(key);
             if (core->used_keys.size() > 100) { core->used_keys.pop_front(); }
             return;
@@ -87,10 +87,13 @@ void Peer_A::fail_verification() {
     delete this;
 }
 
-void Peer_A::pass_verification(string correct_key) {
+void Peer_A::pass_verification() {
     char *response;
     size_t response_size;
-    tie(response, response_size) = generate_fake_http_response(correct_key);
+    tie(response, response_size) = generate_fake_http_response();
+
+    coder = new Encryption(Encryption::sha_hash(key + "DOWN"), Encryption::sha_hash(key + "UP"));
+
     write_handler->reset(response, response_size);
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
         delete buf;
@@ -106,6 +109,8 @@ void Peer_A::prepare_for_use() {
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
         DEBUG(cout << "[" << socket_id << "]\t" << "|==> " << s << endl;)
+        coder->decrypt(buf, s);
+
         if (on_reading_data) {
             // Current Packet is a DATA packet
             auto *connection = core->connection_b[read_meta->dispatcher];
@@ -192,6 +197,8 @@ void Peer_A::start_writer() {
         write_pointer = write_buffer.front();
         write_buffer.pop_front();
 
+        coder->encrypt(write_pointer->buffer, write_pointer->length);
+
         write_handler->reset(write_pointer->buffer, write_pointer->length);
         write_handler->start();
     }
@@ -206,9 +213,12 @@ Peer_A::Peer_A(ev::default_loop *loop, Proxy_Peer *peer, int descriptor, Peer_Co
 
     this->on_writing = false;
     this->on_reading_data = false;
+    this->coder = nullptr;
 }
 
 Peer_A::~Peer_A() {
+    delete coder;
+
     // Read
     delete read_handler;
     delete read_meta;

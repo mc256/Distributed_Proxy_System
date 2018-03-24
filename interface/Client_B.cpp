@@ -5,14 +5,14 @@
 #include "Client_B.hpp"
 
 
-tuple<char *, size_t > Client_B::generate_fake_request() {
+tuple<char *, size_t> Client_B::generate_fake_request() {
     string fake_header = "GET / HTTP/1.1\r\nHost:errno104.com\r\nConnection: keep-alive\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: en-CA,en;q=0.9,zh;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,ja;q=0.5,fr;q=0.4\r\n";
 
     //Construct key
     key = Encryption::sha_hash(peer->password + to_string(Encryption::get_current_time(TOTP_INTERVAL)));
     string request = fake_header + "Cookie: __utmc=" + key + "\r\n\r\n";
 
-    return tuple<char *, size_t >(strdup(request.c_str()),request.length());
+    return tuple<char *, size_t>(strdup(request.c_str()), request.length());
 }
 
 
@@ -33,7 +33,7 @@ void Client_B::start() {
     };
 
     // Write
-    char * request;
+    char *request;
     size_t request_size;
     tie(request, request_size) = generate_fake_request();
     write_handler = new Async_Write(loop, socket_id, request, request_size);
@@ -55,7 +55,7 @@ void Client_B::start() {
 
 // STEP 2
 void Client_B::verify_peer(char *buf, ssize_t s) {
-    if (s == MAX_BUFFER_SIZE){
+    if (s == MAX_BUFFER_SIZE) {
         delete buf;
         delete this;
         return;
@@ -69,6 +69,9 @@ void Client_B::verify_peer(char *buf, ssize_t s) {
         read_handler->stop_watchers();
         read_handler->set_timeout(0);
         read_handler->set_use_recv(false);
+
+        coder = new Encryption(Encryption::sha_hash(key + "UP"), Encryption::sha_hash(key + "DOWN"));
+
         prepare_for_use();
     }
 }
@@ -81,7 +84,9 @@ void Client_B::prepare_for_use() {
     read_handler->set_timeout(Encryption::get_random(DEFAULT_TIMEOUT, 10));
     read_handler->reset((char *) new Packet_Meta, sizeof(Packet_Meta));
     read_handler->read_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"<==| " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "<==| " << s << endl;)
+        coder->decrypt(buf, s);
+
         if (on_reading_data) {
             // Current Packet is DATA Packet
             auto *connection = core->connection_a[read_meta->dispatcher];
@@ -131,7 +136,7 @@ void Client_B::prepare_for_use() {
         read_handler->start();
     };
     read_handler->closed_event = read_handler->failed_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"<==x " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "<==x " << s << endl;)
         close(socket_id);
         delete this;
     };
@@ -140,8 +145,8 @@ void Client_B::prepare_for_use() {
     // Writing Configuration
     write_handler->set_timeout(Encryption::get_random(DEFAULT_TIMEOUT, 10));
     write_handler->wrote_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"==>| " << s << endl;)
-        if (s == 3){
+        DEBUG(cout << "[" << socket_id << "]\t" << "==>| " << s << endl;)
+        if (s == 3) {
             DEBUG(cout << "debug" << endl;)
         }
         delete write_pointer;
@@ -151,7 +156,7 @@ void Client_B::prepare_for_use() {
         start_writer();
     };
     write_handler->closed_event = write_handler->failed_event = [this](char *buf, ssize_t s) {
-        DEBUG(cout << "["<< socket_id << "]\t"<<"==>x " << s << endl;)
+        DEBUG(cout << "[" << socket_id << "]\t" << "==>x " << s << endl;)
         close(socket_id);
         delete this;
     };
@@ -169,6 +174,8 @@ void Client_B::start_writer() {
         write_pointer = write_buffer.front();
         write_buffer.pop_front();
 
+        coder->encrypt(write_pointer->buffer, write_pointer->length);
+
         write_handler->reset(write_pointer->buffer, write_pointer->length);
         write_handler->start();
     }
@@ -184,9 +191,12 @@ Client_B::Client_B(ev::default_loop *loop, Proxy_Peer *peer, int socket_id, Clie
     this->on_writing = false;
     this->on_reading_data = false;
     this->key = "";
+    this->coder = nullptr;
 }
 
 Client_B::~Client_B() {
+    delete coder;
+
     // Read
     delete read_handler;
     delete read_meta;
