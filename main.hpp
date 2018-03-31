@@ -81,11 +81,11 @@ struct SOCKS_Request_Server{
 
 
 struct Packet_Meta{
-    int dispatcher;
-    int signal;
+    uint16_t dispatcher;
+    uint16_t signal;
 
-    size_t sequence;
-    size_t size;
+    uint16_t sequence;
+    uint16_t size;
 };
 
 
