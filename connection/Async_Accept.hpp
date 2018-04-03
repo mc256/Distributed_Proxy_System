@@ -17,15 +17,23 @@ private:
     ev::io read_io_watcher;
 
 public:
-
+    // Event call back function
     void read_callback(ev::io &w, int r);
 
+    // The function will be called when a new connection is established
     function<void(int, sockaddr_storage, socklen_t)> accepted_event;
 
+    // Starts the socket listener
     void start();
 
-    Async_Accept(ev::default_loop *loop,
-                 string address, int port);
+    // Constructor
+    // Creates a socket listener using given address and port
+    //  loop: event loop
+    //  address: string presentation of the IP address
+    //  port: integer presentation of a port number
+    Async_Accept(ev::default_loop *loop, string address, int port);
+
+    // Destructor
     ~Async_Accept();
 };
 

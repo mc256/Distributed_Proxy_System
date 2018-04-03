@@ -29,14 +29,18 @@ public:
     string password_confirm;
 
     // Method
+    // Loads the configuration from file
     void load_config();
+    // Re-establish connection to the server application interface
     void reconnect();
+    // Start event listener
     void start();
 
     // Call back
     void operator()(ev::timer &w, int r);
 
     // Constructor
+    //  loop: event loop
     explicit  Client_Core(ev::default_loop * loop);
 };
 

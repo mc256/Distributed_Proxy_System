@@ -35,19 +35,32 @@ public:
 
     /////////////////////////////////////
     // STEP 1
+    // Start handshaking
     void start();
 
     // STEP 2
+    // Check client's request
     void verify_client(string s);
+    // Client did not pass the verification, we should send it a regular HTTP response
     void fail_verification();
+    // Client passed the verification
     void pass_verification();
+    // Start sending data to the client
     void start_writer();
 
     // Features
+    // Prepare for client if it passed verification
     void prepare_for_use();
 
     // Constructor & Destructor
+    // Constructor
+    //  loop: event loop
+    //  peer: contains information of the connection
+    //  descriptor: socket descriptor
+    //  core: a pointer to the program core
     Peer_A(ev::default_loop *loop, Proxy_Peer *peer, int descriptor, Peer_Core * core);
+
+    // Destructor
     ~Peer_A();
 
     // Information

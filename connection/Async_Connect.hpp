@@ -20,17 +20,29 @@ private:
 
     void stop_watchers();
 public:
+    // Event call back function
     void read_callback(ev::io &w, int r);
     void write_callback(ev::io &w, int r);
     void timeout_callback(ev::timer &w, int r);
 
+    // The function will be called when a new connection is established
     function<void(int)> connected_event;
+    // The function will be called when it is timeout or failed
     function<void()> failed_event;
 
+    // Starts connecting the socket
     void start();
 
-    Async_Connect(ev::default_loop *loop,
-                  string address, int port, int timeout);
+
+    // Constructor
+    // Connect to a remote address using given address and port.
+    //  loop: event loop
+    //  address: string presentation of the IP address
+    //  port: integer presentation of a port number
+    //  timeout: number of seconds that the connection can wait for response
+    Async_Connect(ev::default_loop *loop, string address, int port, int timeout);
+
+    // Destructor
     ~Async_Connect();
 };
 

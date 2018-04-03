@@ -34,18 +34,30 @@ public:
     map<int, Packet *> sort_buffer;
 
     // Method
+    // Starts the event listener and all the connections
     void start();
 
+    // Sends data to the server application
     void up_link_transmit();
+    // Sends data to the SOCKS client
     void start_writer();
 
+    // Release read buffer
+    //  offset: the point where stop releasing
     void clear_read_buffer(size_t offset);
 
+    // Terminate the connection
     void terminate();
 
     // Constructor & Destructor
+    // Constructor
+    //  loop: event loop
+    //  socket_id: socket descriptor
+    //  interface_id: a unique number to identify the connection between SOCKS client and the client app
+    //  core: a pointer to the program core
     Client_A(ev::default_loop *loop, int socket_id, int interface_id, Client_Core *core);
 
+    // Destructor
     ~Client_A();
 
     // Information

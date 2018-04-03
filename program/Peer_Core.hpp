@@ -28,7 +28,9 @@ public:
     map<int, Peer_B *> connection_b;
 
     // Method
+    // Loads the configuration from file
     void load_config();
+    // Start event listener
     void start();
     Peer_B * connect_socks_server(int dispatcher);
 
@@ -36,6 +38,7 @@ public:
     void operator()(ev::timer &w, int r);
 
     // Constructor
+    //  loop: event loop
     explicit  Peer_Core(ev::default_loop * loop);
 };
 
