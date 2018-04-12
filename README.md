@@ -2,7 +2,7 @@
 
 This is a EECS4080 Project at York University. 
 
-![EECS4080 Poster](http://errno104.com/wp-content/uploads/sites/3/2018/04/eecs4080poster.png)
+![EECS4080 Poster](http://masterchan.me/eecs4080poster.svg)
 
 ## Compile & Run
 
