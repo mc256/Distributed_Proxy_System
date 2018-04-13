@@ -1,8 +1,8 @@
+![EECS4080 Poster](http://masterchan.me/eecs4080poster.svg)
+
 # Distributed Anti-Interference Proxy System
 
 This is a EECS4080 Project at York University. 
-
-![EECS4080 Poster](http://masterchan.me/eecs4080poster.svg)
 
 ## Compile & Run
 
