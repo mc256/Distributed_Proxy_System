@@ -1,4 +1,4 @@
-![EECS4080 Poster](http://masterchan.me/eecs4080poster.svg)
+![EECS4080 Poster](https://masterchan.me/test1x.png)
 
 # Distributed Anti-Interference Proxy System
 
