@@ -4,6 +4,11 @@
 
 This is a EECS4080 Project at York University. 
 
+Research Paper: **Junlin Chen and Uyen Trang Nguyen, A Robust Protocol for Circumventing Censoring Firewalls, 18th IEEE International Conference on Computer and Information Technology (CIT-2018), Halifax, Canada, July 30 - August 3, 2018.**
+
+DOI 10.1109/Cybermatics_2018.2018.00299
+
+
 ## Compile & Run
 
 You can compile this project using **cmake** or **makefile** in CentOS7. Please install [libev](https://github.com/enki/libev) before compile using 
